@@ -22,12 +22,19 @@ func GetInfo() helper.Info {
 
 //HOOK_1. 定义钩子类型，钩子类型为一个函数类型
 type set_router_hook func(r *gin.Engine)
-type set_handle_hook func() (method string, path string, handlers gin.HandlerFunc)
+type set_handle_hook func() (method RequestMethod, path string, handlers gin.HandlerFunc)
 
 //HOOK_2. 钩子组，接入的钩子必须支持多个，因此需要定一个数组
 var set_router_hooks = []set_router_hook{}
 var set_middleWave_hooks = []gin.HandlerFunc{}
 var set_handle_hooks = []set_handle_hook{}
+
+type RequestMethod string
+
+const (
+	POST RequestMethod = "post"
+	GET  RequestMethod = "get"
+)
 
 //HOOK_3. 提供挂入钩子的方法，其他模块可以将处理的函数添加到钩子组中
 func AddSetRouterHook(h set_router_hook) {
@@ -53,9 +60,9 @@ func startServer(debug bool, addr ...string) {
 	for _, hook := range set_handle_hooks {
 		m, p, f := hook()
 		switch {
-		case m == "get":
+		case m == GET:
 			router.GET(p, f)
-		case m == "post":
+		case m == POST:
 			router.POST(p, f)
 		}
 	}

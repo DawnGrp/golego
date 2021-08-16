@@ -19,9 +19,9 @@ func init() {
 	ginserver.AddSetHandleHook(sayHello)
 }
 
-func sayHello() (string, string, gin.HandlerFunc) {
+func sayHello() (ginserver.RequestMethod, string, gin.HandlerFunc) {
 
-	return "get", "/", func(c *gin.Context) {
+	return ginserver.GET, "/", func(c *gin.Context) {
 		c.String(200, "Hello!!")
 	}
 
