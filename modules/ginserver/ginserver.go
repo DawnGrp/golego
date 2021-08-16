@@ -47,8 +47,8 @@ func AddSetHandleHook(h set_handle_hook) {
 	set_handle_hooks = append(set_handle_hooks, h)
 }
 
-func startServer(debug bool, addr ...string) {
-	fmt.Println("server run", debug)
+func startServer() {
+	fmt.Println("server run", helper.Config.Debug)
 	router := gin.Default()
 
 	//在所有处理函数之前买下中间件钩子
@@ -74,7 +74,7 @@ func startServer(debug bool, addr ...string) {
 
 	helper.WaitGroup.Add(1)
 	go func() {
-		router.Run(addr...)
+		router.Run(helper.Config.GinserverAddr)
 		helper.WaitGroup.Done()
 	}()
 }

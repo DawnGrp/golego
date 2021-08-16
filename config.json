@@ -1,1 +1,4 @@
-{}
+{
+    "debug": true,
+    "ginserver_addr": "8081"
+}

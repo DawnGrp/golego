@@ -29,8 +29,8 @@ var ModuleInfos map[string]Info
 var WaitGroup sync.WaitGroup
 
 type ConfigType struct {
-	Addr  []string
-	Debug bool
+	GinserverAddr string `json:"ginserver_addr"`
+	Debug         bool
 }
 
 var Config = ConfigType{}
@@ -43,7 +43,7 @@ func GetInfo() Info {
 
 func loadConfig() {
 
-	configPath := flag.String("config", "", "custom config file path")
+	configPath := flag.String("c", "", "custom config file path")
 	flag.Parse()
 	if configPath == nil || *configPath == "" {
 		*configPath = Default_Config_Path
