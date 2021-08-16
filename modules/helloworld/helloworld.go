@@ -15,6 +15,7 @@ func GetInfo() helper.Info {
 }
 
 func init() {
+	//挂钩子
 	ginserver.AddSetHandleHook(sayHello)
 }
 
