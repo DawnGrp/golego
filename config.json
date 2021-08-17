@@ -1,9 +1,14 @@
 {
-	"global": {
+    "global": {
         "debug": true
     },
-	"database": {"conn":":8082"},
-	"ginserver": {
+    "ginserver": {
         "addr": ":8082"
+    },
+    "database": {
+        "conns": {
+            "default": "connectstring1",
+            "connName2": "connecstring2"
+        }
     }
 }

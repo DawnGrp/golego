@@ -18,7 +18,8 @@ func GetInfo() helper.Info {
 	}
 }
 
-var dbClients map[string]*mongo.Client
+var dbClients = map[string]*mongo.Client{}
+var dbClientErrs = map[string]error{}
 
 func init() {
 	initDataBase()
@@ -34,21 +35,19 @@ func initDataBase() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var err error
 	for name, item := range cfg.Get("conns").Map() {
-		dbClients[name], err = mongo.Connect(ctx, options.Client().ApplyURI(item.String()))
-		if err != nil {
-			panic(err)
-		}
+		dbClients[name], dbClientErrs[name] = mongo.Connect(ctx, options.Client().ApplyURI(item.String()))
 	}
 }
 
-func GetClient(name string) *mongo.Client {
-	return dbClients[name]
+func GetClient(name string) (*mongo.Client, error) {
+	return dbClients[name], dbClientErrs[name]
 }
 
 func Disconnect() {
 	for _, dbclient := range dbClients {
-		dbclient.Disconnect(context.Background())
+		if dbclient != nil {
+			dbclient.Disconnect(context.Background())
+		}
 	}
 }
