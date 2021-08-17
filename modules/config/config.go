@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	Default_Config_Path = "./config.json"
+	default_Config_Path = "./config.json"
 )
 
 var config map[string]gjson.Result
@@ -40,7 +40,7 @@ func LoadConfig() {
 	configPath := flag.String("c", "", "custom config file path")
 	flag.Parse()
 	if configPath == nil || *configPath == "" {
-		*configPath = Default_Config_Path
+		*configPath = default_Config_Path
 	}
 
 	configData, err := ioutil.ReadFile(*configPath)
@@ -62,7 +62,7 @@ func SaveConfig() {
 
 	configString := fmt.Sprintf("{\n%s\n}", strings.Join(configArray, ",\n"))
 
-	err := ioutil.WriteFile(Default_Config_Path, []byte(configString), 0555)
+	err := ioutil.WriteFile(default_Config_Path, []byte(configString), 0555)
 	if err != nil {
 		panic(err)
 	}

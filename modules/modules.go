@@ -4,6 +4,7 @@ package modules
 import (
 	"golego/modules/bootstrap"
 	"golego/modules/config"
+	"golego/modules/database"
 	"golego/modules/ginserver"
 	"golego/modules/helloworld"
 	"golego/modules/helper"
@@ -16,11 +17,15 @@ func GetModuleInfos() map[string]helper.Info {
 		ginserver.GetInfo().Name:  ginserver.GetInfo(),
 		helper.GetInfo().Name:     helper.GetInfo(),
 		helloworld.GetInfo().Name: helloworld.GetInfo(),
+		database.GetInfo().Name:   database.GetInfo(),
 	}
 }
 
 //系统启动模块的入口
 func Start() {
+
+	defer database.Disconnect()
+
 	helper.ModuleInfos = GetModuleInfos()
 	bootstrap.Run()
 	config.SaveConfig()
