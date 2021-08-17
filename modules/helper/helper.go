@@ -1,21 +1,13 @@
 package helper
 
 import (
-	"flag"
-	"io/ioutil"
 	"sync"
-
-	"encoding/json"
 )
 
 type Info struct {
 	Name        string
 	Description string
 }
-
-const (
-	Default_Config_Path = "./config.json"
-)
 
 //模块信息Map，用来保存所有模块的信息
 //模块主动提供公共函数GetInfo，返回Info类型的对象以描述模块的信息
@@ -28,37 +20,8 @@ var ModuleInfos map[string]Info
 //在异步进程结束时，调用helper.WaitGroup.Done() 向WaitGroup表达线程已经结束。
 var WaitGroup sync.WaitGroup
 
-type ConfigType struct {
-	GinserverAddr string `json:"ginserver_addr"`
-	Debug         bool
-}
-
-var Config = ConfigType{}
-
 func GetInfo() Info {
 	return Info{
-		Name: "bootstrap",
+		Name: "config",
 	}
-}
-
-func loadConfig() {
-
-	configPath := flag.String("c", "", "custom config file path")
-	flag.Parse()
-	if configPath == nil || *configPath == "" {
-		*configPath = Default_Config_Path
-	}
-	configData, err := ioutil.ReadFile(*configPath)
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(configData, &Config)
-	if err != nil {
-		panic(err)
-	}
-
-}
-
-func init() {
-	loadConfig()
 }

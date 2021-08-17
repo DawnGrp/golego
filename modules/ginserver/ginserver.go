@@ -1,11 +1,12 @@
 package ginserver
 
 import (
-	"fmt"
 	"golego/modules/bootstrap"
+	"golego/modules/config"
 	"golego/modules/helper"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 //HOOK_5. 在init函数中挂载钩子
@@ -48,7 +49,7 @@ func AddSetHandleHook(h set_handle_hook) {
 }
 
 func startServer() {
-	fmt.Println("server run", helper.Config.Debug)
+
 	router := gin.Default()
 
 	//在所有处理函数之前买下中间件钩子
@@ -72,9 +73,17 @@ func startServer() {
 		hook(router)
 	}
 
+	//获得本模块的配置
+	//如果不存在，则写入一个默认配置
+	cfg, ok := config.Get(GetInfo().Name)
+	if !ok {
+		cfg = gjson.Parse(`{"addr":":8082"}`)
+		config.Add(GetInfo().Name, cfg)
+	}
+
 	helper.WaitGroup.Add(1)
 	go func() {
-		router.Run(helper.Config.GinserverAddr)
+		router.Run(cfg.Get("addr").String())
 		helper.WaitGroup.Done()
 	}()
 }

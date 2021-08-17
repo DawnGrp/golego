@@ -3,6 +3,7 @@ package modules
 //导入所有模块包，以执行所有包的Init函数
 import (
 	"golego/modules/bootstrap"
+	"golego/modules/config"
 	"golego/modules/ginserver"
 	"golego/modules/helloworld"
 	"golego/modules/helper"
@@ -20,8 +21,9 @@ func GetModuleInfos() map[string]helper.Info {
 
 //系统启动模块的入口
 func Start() {
-
 	helper.ModuleInfos = GetModuleInfos()
 	bootstrap.Run()
+	config.SaveConfig()
 	helper.WaitGroup.Wait()
+
 }

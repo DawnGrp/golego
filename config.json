@@ -1,4 +1,8 @@
 {
-    "debug": true,
-    "ginserver_addr": "8081"
+    "ginserver": {
+        "addr": ":8082"
+    },
+    "global": {
+        "debug": true
+    }
 }
