@@ -33,8 +33,14 @@ var set_handle_hooks = []set_handle_hook{}
 type RequestMethod string
 
 const (
-	POST RequestMethod = "post"
-	GET  RequestMethod = "get"
+	POST    RequestMethod = "POST"
+	GET     RequestMethod = "GET"
+	DELETE  RequestMethod = "DELETE"
+	PATCH   RequestMethod = "PATCH"
+	PUT     RequestMethod = "PUT"
+	OPTIONS RequestMethod = "OPTIONS"
+	HEAD    RequestMethod = "HEAD"
+	ANY     RequestMethod = "ANY"
 )
 
 //HOOK_3. 提供挂入钩子的方法，其他模块可以将处理的函数添加到钩子组中
@@ -61,10 +67,22 @@ func startServer() {
 	for _, hook := range set_handle_hooks {
 		m, p, f := hook()
 		switch {
-		case m == GET:
-			router.GET(p, f)
 		case m == POST:
 			router.POST(p, f)
+		case m == GET:
+			router.GET(p, f)
+		case m == DELETE:
+			router.DELETE(p, f)
+		case m == PATCH:
+			router.PATCH(p, f)
+		case m == PUT:
+			router.PUT(p, f)
+		case m == OPTIONS:
+			router.OPTIONS(p, f)
+		case m == HEAD:
+			router.HEAD(p, f)
+		case m == ANY:
+			router.Any(p, f)
 		}
 	}
 
