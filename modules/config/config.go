@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"golego/modules/bootstrap"
 	"golego/modules/helper"
 	"io/ioutil"
 	"strings"
@@ -23,7 +24,8 @@ func GetInfo() helper.Info {
 }
 
 func init() {
-	LoadConfig()
+	bootstrap.AddBeforeRunHook(loadConfig)
+	bootstrap.AddAfterRunHook(saveConfig)
 }
 
 func Add(name string, value gjson.Result) {
@@ -35,7 +37,7 @@ func Get(name string) (value gjson.Result, ok bool) {
 	return
 }
 
-func LoadConfig() {
+func loadConfig() {
 
 	configPath := flag.String("c", "", "custom config file path")
 	flag.Parse()
@@ -52,7 +54,7 @@ func LoadConfig() {
 
 }
 
-func SaveConfig() {
+func saveConfig() {
 
 	configArray := []string{}
 

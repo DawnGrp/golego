@@ -18,17 +18,17 @@ func GetModuleInfos() map[string]helper.Info {
 		helper.GetInfo().Name:     helper.GetInfo(),
 		helloworld.GetInfo().Name: helloworld.GetInfo(),
 		database.GetInfo().Name:   database.GetInfo(),
+		config.GetInfo().Name:     config.GetInfo(),
 	}
 }
 
 //系统启动模块的入口
 func Start() {
 
-	defer database.Disconnect()
-
 	helper.ModuleInfos = GetModuleInfos()
+	bootstrap.BeforeRun()
 	bootstrap.Run()
-	config.SaveConfig()
+	bootstrap.AfterRun()
 	helper.WaitGroup.Wait()
 
 }

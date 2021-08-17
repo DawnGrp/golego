@@ -2,13 +2,13 @@
     "global": {
         "debug": true
     },
-    "ginserver": {
-        "addr": ":8082"
-    },
     "database": {
         "conns": {
             "default": "connectstring1",
             "connName2": "connecstring2"
         }
+    },
+    "ginserver": {
+        "addr": ":8082"
     }
 }

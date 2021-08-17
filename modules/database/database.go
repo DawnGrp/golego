@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"golego/modules/bootstrap"
 	"golego/modules/config"
 	"golego/modules/helper"
 	"time"
@@ -22,7 +23,8 @@ var dbClients = map[string]*mongo.Client{}
 var dbClientErrs = map[string]error{}
 
 func init() {
-	initDataBase()
+	bootstrap.AddBeforeRunHook(initDataBase)
+	bootstrap.AddAfterRunHook(disconnect)
 }
 
 func initDataBase() {
@@ -44,7 +46,7 @@ func GetClient(name string) (*mongo.Client, error) {
 	return dbClients[name], dbClientErrs[name]
 }
 
-func Disconnect() {
+func disconnect() {
 	for _, dbclient := range dbClients {
 		if dbclient != nil {
 			dbclient.Disconnect(context.Background())
