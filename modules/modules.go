@@ -6,19 +6,18 @@ import (
 	"golego/modules/config"
 	"golego/modules/database"
 	"golego/modules/ginserver"
-	"golego/modules/helloworld"
 	"golego/modules/helper"
 )
 
 //取得所有包的Info信息
 func GetModuleInfos() map[string]helper.Info {
 	return map[string]helper.Info{
-		bootstrap.GetInfo().Name:  bootstrap.GetInfo(),
-		ginserver.GetInfo().Name:  ginserver.GetInfo(),
-		helper.GetInfo().Name:     helper.GetInfo(),
-		helloworld.GetInfo().Name: helloworld.GetInfo(),
-		database.GetInfo().Name:   database.GetInfo(),
-		config.GetInfo().Name:     config.GetInfo(),
+		bootstrap.GetInfo().Name: bootstrap.GetInfo(),
+		ginserver.GetInfo().Name: ginserver.GetInfo(),
+		helper.GetInfo().Name:    helper.GetInfo(),
+		// helloworld.GetInfo().Name: helloworld.GetInfo(),
+		database.GetInfo().Name: database.GetInfo(),
+		config.GetInfo().Name:   config.GetInfo(),
 	}
 }
 
