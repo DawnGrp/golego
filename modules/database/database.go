@@ -12,6 +12,7 @@ import (
 	"github.com/tidwall/gjson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 //实现一个开放的GetInfo方法
@@ -42,6 +43,11 @@ func initDataBase() {
 
 	for name, item := range cfg.Get("conns").Map() {
 		dbClients[name], dbClientErrs[name] = mongo.Connect(ctx, options.Client().ApplyURI(item.String()))
+
+		if dbClientErrs[name] == nil {
+			dbClientErrs[name] = dbClients[name].Ping(ctx, readpref.Primary())
+		}
+
 	}
 }
 
@@ -62,7 +68,12 @@ func status() (ginserver.RequestMethod, string, gin.HandlerFunc) {
 	return ginserver.GET, "/dbclienterrs", func(c *gin.Context) {
 
 		for name, err := range dbClientErrs {
-			c.String(200, name+":"+err.Error()+"\n")
+			if err != nil {
+				c.String(200, name+":"+err.Error()+"\n")
+			} else {
+				c.String(200, name+":success\n")
+			}
+
 		}
 
 	}

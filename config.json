@@ -1,14 +1,14 @@
 {
+	"global": {
+        "debug": true
+    },
 	"database": {
         "conns": {
-            "default": "connectstring1",
+            "default": "mongodb://localhost:27017/db",
             "connName2": "connecstring2"
         }
     },
 	"ginserver": {
         "addr": ":8082"
-    },
-	"global": {
-        "debug": true
     }
 }
