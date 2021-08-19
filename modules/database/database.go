@@ -26,12 +26,12 @@ var dbClients = map[string]*mongo.Client{}
 var dbClientErrs = map[string]error{}
 
 func init() {
-	bootstrap.AddBeforeRunHook(initDataBase)
+	bootstrap.AddBeforeRunHook(connect)
 	bootstrap.AddAfterRunHook(disconnect)
 	ginserver.AddSetHandleHook(status)
 }
 
-func initDataBase() {
+func connect() {
 	cfg, ok := config.Get(GetInfo().Name)
 	if !ok {
 		cfg = gjson.Parse(`{"conns":{"default":"mongodb://localhost:27017/db"}}`)
@@ -47,7 +47,6 @@ func initDataBase() {
 		if dbClientErrs[name] == nil {
 			dbClientErrs[name] = dbClients[name].Ping(ctx, readpref.Primary())
 		}
-
 	}
 }
 
