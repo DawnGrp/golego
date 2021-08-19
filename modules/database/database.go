@@ -4,8 +4,8 @@ import (
 	"context"
 	"golego/modules/bootstrap"
 	"golego/modules/config"
-	"golego/modules/ginserver"
 	"golego/modules/helper"
+	"golego/modules/webserver"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ var dbClientErrs = map[string]error{}
 func init() {
 	bootstrap.AddBeforeRunHook(connect)
 	bootstrap.AddAfterRunHook(disconnect)
-	ginserver.AddSetHandleHook(status)
+	webserver.AddSetHandleHook(status)
 }
 
 func connect() {
@@ -62,9 +62,9 @@ func disconnect() {
 	}
 }
 
-func status() (ginserver.RequestMethod, string, gin.HandlerFunc) {
+func status() (webserver.RequestMethod, string, gin.HandlerFunc) {
 
-	return ginserver.GET, "/dbclienterrs", func(c *gin.Context) {
+	return webserver.GET, "/dbclienterrs", func(c *gin.Context) {
 
 		for name, err := range dbClientErrs {
 			if err != nil {

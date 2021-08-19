@@ -1,4 +1,4 @@
-package ginserver
+package webserver
 
 import (
 	"golego/modules/bootstrap"
@@ -17,7 +17,7 @@ func init() {
 //实现一个开放的GetInfo方法
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "ginserver",
+		Name: "webserver",
 	}
 }
 
