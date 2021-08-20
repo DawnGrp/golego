@@ -67,6 +67,7 @@ func startServer() {
 	//处理函数钩子
 	for _, hook := range set_handle_hooks {
 		m, p, f := hook()
+
 		switch {
 		case m == POST:
 			router.POST(p, f)

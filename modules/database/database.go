@@ -23,8 +23,8 @@ func GetInfo() helper.Info {
 	}
 }
 
-var dbClients = map[string]*mongo.Client{}
-var dbClientErrs = map[string]error{}
+var dbClient *mongo.Client
+var dbClientErr error
 
 func init() {
 	bootstrap.AddBeforeRunHook(connect)
@@ -35,45 +35,41 @@ func init() {
 func connect() {
 	cfg, ok := config.Get(GetInfo().Name)
 	if !ok {
-		cfg = gjson.Parse(`{"conns":{"default":"mongodb://localhost:27017/db"}}`)
+		cfg = gjson.Parse(`{"conn":"mongodb://localhost:27017/db"}`)
 		config.Add(GetInfo().Name, cfg)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	for name, item := range cfg.Get("conns").Map() {
-		dbClients[name], dbClientErrs[name] = mongo.Connect(ctx, options.Client().ApplyURI(item.String()))
+	dbClient, dbClientErr = mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conns").String()))
 
-		if dbClientErrs[name] == nil {
-			dbClientErrs[name] = dbClients[name].Ping(ctx, readpref.Primary())
-		}
+	if dbClientErr == nil {
+		dbClientErr = dbClient.Ping(ctx, readpref.Primary())
 	}
+
 }
 
-func GetClient(name string) (*mongo.Client, error) {
-	return dbClients[name], dbClientErrs[name]
+func GetClient() (*mongo.Client, error) {
+	return dbClient, dbClientErr
 }
 
 func disconnect() {
-	for _, dbclient := range dbClients {
-		if dbclient != nil {
-			dbclient.Disconnect(context.Background())
-		}
+
+	if dbClient != nil {
+		dbClient.Disconnect(context.Background())
 	}
+
 }
 
 func status() (webserver.RequestMethod, string, gin.HandlerFunc) {
 
-	return webserver.GET, "/dbclienterrs", func(c *gin.Context) {
+	return webserver.GET, "/status", func(c *gin.Context) {
 
-		for name, err := range dbClientErrs {
-			if err != nil {
-				c.String(200, name+":"+err.Error()+"\n")
-			} else {
-				c.String(200, name+":success\n")
-			}
-
+		if dbClientErr != nil {
+			c.String(200, dbClientErr.Error())
+		} else {
+			c.String(200, "success")
 		}
 
 	}

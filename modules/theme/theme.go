@@ -50,11 +50,13 @@ func initTemplate() {
 
 	theme = cfg.Get("theme").String()
 
+	//根据主题配置生成静态目录
 	err := os.MkdirAll(fmt.Sprintf("%s/%s/static", themeRoot, theme), 0755)
 	if err != nil {
 		panic(err)
 	}
 
+	//根据模块配置，检查是否存在对应的模版文件，如果不存在，自动生成
 	for _, info := range helper.ModuleInfos {
 		fmt.Println(info.Name, info.Templates)
 
