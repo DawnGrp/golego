@@ -1,14 +1,16 @@
 {
-    "global": {
-        "debug": true
-    },
-    "database": {
+	"database": {
         "conns": {
-            "default": "mongodb://localhost:27017/db",
-            "connName2": "connecstring2"
+            "default": "mongodb://localhost:27017/db"
         }
     },
-    "webserver": {
+	"webserver": {
         "addr": ":8082"
+    },
+	"global": {
+        "debug": true
+    },
+	"theme": {
+        "theme": "dark"
     }
 }

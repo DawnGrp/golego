@@ -1,6 +1,7 @@
 package webserver
 
 import (
+	"fmt"
 	"golego/modules/bootstrap"
 	"golego/modules/config"
 	"golego/modules/helper"
@@ -98,6 +99,10 @@ func startServer() {
 		cfg = gjson.Parse(`{"addr":":8082"}`)
 		config.Add(GetInfo().Name, cfg)
 	}
+
+	fmt.Println(router.FuncMap)
+
+	fmt.Println(router.Handlers)
 
 	helper.WaitGroup.Add(1)
 	go func() {

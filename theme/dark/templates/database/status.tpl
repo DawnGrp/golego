@@ -1,0 +1,3 @@
+{{define "database/status"}}
+
+{{end}}

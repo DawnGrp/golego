@@ -7,6 +7,7 @@ import (
 type Info struct {
 	Name        string
 	Description string
+	Templates   []string
 }
 
 //模块信息Map，用来保存所有模块的信息

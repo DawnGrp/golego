@@ -18,7 +18,8 @@ import (
 //实现一个开放的GetInfo方法
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "database",
+		Name:      "database",
+		Templates: []string{"status"},
 	}
 }
 

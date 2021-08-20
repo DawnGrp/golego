@@ -6,6 +6,7 @@ import (
 	"golego/modules/config"
 	"golego/modules/database"
 	"golego/modules/helper"
+	"golego/modules/theme"
 	"golego/modules/webserver"
 )
 
@@ -15,9 +16,9 @@ func GetModuleInfos() map[string]helper.Info {
 		bootstrap.GetInfo().Name: bootstrap.GetInfo(),
 		webserver.GetInfo().Name: webserver.GetInfo(),
 		helper.GetInfo().Name:    helper.GetInfo(),
-		// helloworld.GetInfo().Name: helloworld.GetInfo(),
-		database.GetInfo().Name: database.GetInfo(),
-		config.GetInfo().Name:   config.GetInfo(),
+		theme.GetInfo().Name:     theme.GetInfo(),
+		database.GetInfo().Name:  database.GetInfo(),
+		config.GetInfo().Name:    config.GetInfo(),
 	}
 }
 
