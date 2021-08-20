@@ -28,7 +28,7 @@ func init() {
 	bootstrap.AddAfterRunHook(saveConfig)
 }
 
-func Add(name string, value gjson.Result) {
+func Set(name string, value gjson.Result) {
 	config[name] = value
 }
 

@@ -45,7 +45,7 @@ func initTemplate() {
 	cfg, ok := config.Get(GetInfo().Name)
 	if !ok {
 		cfg = gjson.Parse(`{"theme":"default"}`)
-		config.Add(GetInfo().Name, cfg)
+		config.Set(GetInfo().Name, cfg)
 	}
 
 	theme = cfg.Get("theme").String()

@@ -1,14 +1,8 @@
 {
-    "database": {
-        "conn": "mongodb://localhost:27017/db"
-    },
-    "webserver": {
-        "addr": ":8082"
-    },
-    "global": {
+	"database": {"conn":"mongodb://localhost:27017/db"},
+	"theme": {"theme":"default"},
+	"webserver": {"addr":":8082"},
+	"global": {
         "debug": true
-    },
-    "theme": {
-        "theme": "default"
     }
 }

@@ -98,7 +98,7 @@ func startServer() {
 	cfg, ok := config.Get(GetInfo().Name)
 	if !ok {
 		cfg = gjson.Parse(`{"addr":":8082"}`)
-		config.Add(GetInfo().Name, cfg)
+		config.Set(GetInfo().Name, cfg)
 	}
 
 	fmt.Println(router.FuncMap)

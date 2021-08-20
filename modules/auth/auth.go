@@ -12,7 +12,6 @@ import (
 )
 
 func init() {
-	webserver.AddMiddleWaveHook(checkAuth)
 	webserver.AddMiddleWaveHook(setSession())
 }
 
@@ -22,14 +21,11 @@ func GetInfo() helper.Info {
 	}
 }
 
-func checkAuth(c *gin.Context) {
+func check(c *gin.Context) {
+}
 
-	// db, err := database.GetClient()
-	// if err != nil {
-	// 	c.AbortWithError(500, fmt.Errorf("database error:"+err.Error()))
-	// }
+func register(role string, args ...string) {
 
-	c.Next()
 }
 
 func setSession() func(c *gin.Context) {

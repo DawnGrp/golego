@@ -36,13 +36,13 @@ func connect() {
 	cfg, ok := config.Get(GetInfo().Name)
 	if !ok {
 		cfg = gjson.Parse(`{"conn":"mongodb://localhost:27017/db"}`)
-		config.Add(GetInfo().Name, cfg)
+		config.Set(GetInfo().Name, cfg)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dbClient, dbClientErr = mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conns").String()))
+	dbClient, dbClientErr = mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conn").String()))
 
 	if dbClientErr == nil {
 		dbClientErr = dbClient.Ping(ctx, readpref.Primary())
@@ -55,11 +55,9 @@ func GetClient() (*mongo.Client, error) {
 }
 
 func disconnect() {
-
 	if dbClient != nil {
 		dbClient.Disconnect(context.Background())
 	}
-
 }
 
 func status() (webserver.RequestMethod, string, gin.HandlerFunc) {
