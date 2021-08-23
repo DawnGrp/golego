@@ -58,7 +58,7 @@ func initTemplate() {
 
 	//根据模块配置，检查是否存在对应的模版文件，如果不存在，自动生成
 	for _, info := range helper.ModuleInfos {
-		fmt.Println(info.Name, info.Templates)
+		// fmt.Println(info.Name, info.Templates)
 
 		err := os.MkdirAll(fmt.Sprintf("%s/%s/templates/%s", themeRoot, theme, info.Name), 0755)
 		if err != nil {

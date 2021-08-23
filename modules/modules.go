@@ -5,9 +5,11 @@ import (
 	"golego/modules/bootstrap"
 	"golego/modules/config"
 	"golego/modules/database"
+	"golego/modules/document"
 	"golego/modules/helper"
 	"golego/modules/metadata"
 	"golego/modules/theme"
+	"golego/modules/user"
 	"golego/modules/webserver"
 )
 
@@ -21,6 +23,8 @@ func GetModuleInfos() map[string]helper.Info {
 		database.GetInfo().Name:  database.GetInfo(),
 		config.GetInfo().Name:    config.GetInfo(),
 		metadata.GetInfo().Name:  metadata.GetInfo(),
+		document.GetInfo().Name:  document.GetInfo(),
+		user.GetInfo().Name:      user.GetInfo(),
 	}
 }
 

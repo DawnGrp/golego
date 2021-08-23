@@ -2,7 +2,7 @@ package metadata
 
 import (
 	"context"
-	"golego/modules/database"
+	db "golego/modules/database"
 	"golego/modules/helper"
 
 	"golego/modules/bootstrap"
@@ -27,43 +27,62 @@ type FiledType string
 type IndexType string
 
 const (
-	String    FiledType = "string"
-	Int       FiledType = "int"
-	Float     FiledType = "float"
-	Interface FiledType = "interface"
-	Array     FiledType = "array"
-	Map       FiledType = "map"
+	FiledType_String    FiledType = "string"
+	FiledType_Int       FiledType = "int"
+	FiledType_Float     FiledType = "float"
+	FiledType_Interface FiledType = "interface"
+	FiledType_Array     FiledType = "array"
+	FiledType_Map       FiledType = "map"
 
-	Unique IndexType = "unique"
+	IndexType_Unique IndexType = "unique"
+	IndexType_Index  IndexType = "index"
 )
 
-// var me, me2 database.Collection
-var me = database.RegisterCollection("metadata")
+// var me, me2 db.Collection
+var me = db.RegisterCollection("metadata")
 
 type Metadata struct {
-	Name      string
-	HumanName string
-	Fileds    []Filed
-	Index     []Index
+	Name      string  `bson:"name"`
+	HumanName string  `bson:"human_name"`
+	Fileds    []Filed `bson:"fileds"`
+	Indexs    []Index `bson:"indexs"`
 }
 
 type Filed struct {
-	Name        string
-	HumanName   string
-	Type        FiledType
-	Options     []interface{}
-	MultiSelect bool
+	Name        string        `bson:"name"`
+	HumanName   string        `bson:"human_name"`
+	Type        FiledType     `bson:"type"`
+	Options     []interface{} `bson:"options"`
+	MultiSelect bool          `bson:"multi_select"`
 }
 
 type Index struct {
-	Name  string
-	Type  IndexType
-	Filed []string
+	Type   IndexType `bson:"type"`
+	Fileds []string  `bson:"fileds"`
 }
 
-func Create(metadata Metadata) (id interface{}, err error) {
-	c := database.C(me)
-	ir, err := c.InsertOne(context.Background(), metadata)
+//todo: 在什么时候添加index呢 ？，应该在Replace和Insert的时候添加
+
+func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error) {
+	opts := options.Replace().SetUpsert(no_document_to_insert)
+	c := db.C(me)
+	ir, err := c.ReplaceOne(
+		context.Background(),
+		bson.D{{Key: "name", Value: md.Name}}, md, opts)
+
+	if err != nil {
+		return
+	}
+	id = ir.UpsertedID
+	return
+}
+
+func Insert(md Metadata) (id interface{}, err error) {
+
+	c := db.C(me)
+	ir, err := c.InsertOne(
+		context.Background(), md)
+
 	if err != nil {
 		return
 	}
@@ -71,23 +90,84 @@ func Create(metadata Metadata) (id interface{}, err error) {
 	return
 }
 
-func GetOne(name string) (metadata Metadata, err error) {
-	c := database.C(me)
+func Get(name string) (metadata Metadata, err error) {
+	c := db.C(me)
 	sr := c.FindOne(context.Background(), bson.D{{Key: "name", Value: name}})
-	if sr.Err() != nil {
+	err = sr.Err()
+	if err != nil {
 		return
 	}
 	err = sr.Decode(&metadata)
+
 	return
 }
 
-func GetList() (metadatas []Metadata, err error) {
-	c := database.C(me)
+func GetAll() (mds []Metadata, err error) {
+	c := db.C(me)
 	cursor, err := c.Find(context.Background(), bson.D{})
 	if err != nil {
 		return
 	}
-	err = cursor.All(context.Background(), &metadatas)
+	err = cursor.All(context.Background(), &mds)
+	return
+}
+
+func Del(name string) (err error) {
+	c := db.C(me)
+	_, err = c.DeleteOne(context.Background(), bson.D{{Key: "name", Value: name}})
+	return err
+}
+
+//通过元数据创建数据
+func InsertOneFromMetadata(metadataName string, fields map[string]interface{}) (newid interface{}, err error) {
+	md, err := Get(metadataName)
+	if err != nil {
+		return
+	}
+
+	data := bson.D{}
+	for _, f := range md.Fileds {
+		if field, ok := fields[f.Name]; ok {
+			data = append(data, bson.E{Key: f.Name, Value: field})
+		}
+	}
+	//todo:缺少类型检查
+
+	c := db.C(db.Collection(metadataName))
+	ir, err := c.InsertOne(context.Background(), data)
+	newid = ir.InsertedID
+	return
+}
+
+func UpdateByIDFromMetadata(metadataName string, id interface{}, fields map[string]interface{}) (err error) {
+	md, err := Get(metadataName)
+	if err != nil {
+		return
+	}
+
+	data := bson.D{}
+	for _, f := range md.Fileds {
+		if field, ok := fields[f.Name]; ok {
+			data = append(data, bson.E{Key: f.Name, Value: field})
+		}
+	}
+	//todo:缺少类型检查
+
+	c := db.C(db.Collection(metadataName))
+	_, err = c.UpdateByID(context.Background(), id, data)
+
+	return
+}
+
+func DeleteByIDFromMetadata(metadataName string, id interface{}) (err error) {
+	_, err = Get(metadataName)
+	if err != nil {
+		return
+	}
+
+	c := db.C(db.Collection(metadataName))
+	_, err = c.DeleteOne(context.Background(), bson.D{{Key: "_id", Value: id}})
+
 	return
 }
 
@@ -99,7 +179,7 @@ func createMetadataIndex() {
 		Options: &options.IndexOptions{Unique: &isUnique, Name: &indexName},
 	}
 
-	indexName, err := database.C(me).Indexes().CreateOne(context.Background(), index)
+	indexName, err := db.C(me).Indexes().CreateOne(context.Background(), index)
 	if err != nil {
 		panic(err)
 	}
