@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"golego/modules/bootstrap"
 	"golego/modules/config"
 	"golego/modules/helper"
@@ -23,53 +24,73 @@ func GetInfo() helper.Info {
 	}
 }
 
-var dbClient *mongo.Client
-var dbClientErr error
+var db *mongo.Database
+var err error
+
+type Collection string
+
+var collections = map[string]int{}
 
 func init() {
 	bootstrap.AddBeforeRunHook(connect)
 	bootstrap.AddAfterRunHook(disconnect)
-	webserver.AddSetHandleHook(status)
+	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+		return webserver.GET, "/status", status
+	})
+}
+
+func RegisterCollection(C string) Collection {
+	if _, ok := collections[C]; ok {
+		panic(fmt.Errorf("%s exist", C))
+	}
+
+	collections[C] = 1
+
+	return Collection(C)
 }
 
 func connect() {
 	cfg, ok := config.Get(GetInfo().Name)
 	if !ok {
-		cfg = gjson.Parse(`{"conn":"mongodb://localhost:27017/db"}`)
+		cfg = gjson.Parse(`{"conn":"mongodb://localhost:27017","db":"golego"}`)
 		config.Set(GetInfo().Name, cfg)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dbClient, dbClientErr = mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conn").String()))
+	var client *mongo.Client
+	client, err = mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conn").String()))
 
-	if dbClientErr == nil {
-		dbClientErr = dbClient.Ping(ctx, readpref.Primary())
+	if err == nil {
+		err = client.Ping(ctx, readpref.Primary())
 	}
+
+	db = client.Database(cfg.Get("db").String())
 
 }
 
-func GetClient() (*mongo.Client, error) {
-	return dbClient, dbClientErr
+//GetDataBase 获得数据库
+func DB() *mongo.Database {
+	return db
+}
+
+//GetCollection 获得集合对象
+func C(name Collection) *mongo.Collection {
+	return DB().Collection(string(name))
 }
 
 func disconnect() {
-	if dbClient != nil {
-		dbClient.Disconnect(context.Background())
+	if db != nil {
+		db.Client().Disconnect(context.Background())
 	}
 }
 
-func status() (webserver.RequestMethod, string, gin.HandlerFunc) {
-
-	return webserver.GET, "/status", func(c *gin.Context) {
-
-		if dbClientErr != nil {
-			c.String(200, dbClientErr.Error())
-		} else {
-			c.String(200, "success")
-		}
-
+func status(c *gin.Context) {
+	if err != nil {
+		c.String(200, err.Error())
+	} else {
+		c.String(200, "success")
 	}
 
 }

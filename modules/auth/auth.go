@@ -21,15 +21,12 @@ func GetInfo() helper.Info {
 	}
 }
 
-func check(c *gin.Context) {
-}
+func Register() (err error) {
 
-func register(role string, args ...string) {
-
+	return err
 }
 
 func setSession() func(c *gin.Context) {
-
 	uuid := strings.Replace(uuid.NewV4().String(), "-", "", -1)
 	store := memstore.NewStore([]byte(uuid))
 	store.Options(sessions.Options{
