@@ -14,14 +14,14 @@ import (
 )
 
 //实现一个开放的GetInfo方法
-func GetInfo() helper.Info {
-	return helper.Info{
-		Name:      "metadata",
-		HumanName: "元数据模块",
-	}
+var me = helper.ModuleInfo{
+	Name:      "metadata",
+	HumanName: "元数据模块",
 }
 
 func init() {
+	helper.Register(me)
+	db.RegisterC(me.Name)
 	//系统启动时创建元数据模块的集合和索引
 	bootstrap.AddRunHook(createMetadataIndex)
 }
@@ -42,9 +42,6 @@ const (
 	IndexType_Unique IndexType = "unique"
 	IndexType_Index  IndexType = "index"
 )
-
-//根据名称创建一个集合对象
-var me = db.Collection(GetInfo().Name)
 
 type Metadata struct {
 	Name      string  `bson:"name"`
@@ -69,13 +66,13 @@ type Index struct {
 //更新替换一个元数据
 func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error) {
 
-	err = createIndexs(db.Collection(md.Name), md.Indexs)
+	err = createIndexs(md.Name, md.Indexs)
 	if err != nil {
 		return
 	}
 
 	opts := options.Replace().SetUpsert(no_document_to_insert)
-	c := db.C(me)
+	c := db.C(me.Name)
 	ir, err := c.ReplaceOne(
 		context.Background(),
 		bson.D{{Key: "name", Value: md.Name}}, md, opts)
@@ -90,12 +87,12 @@ func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error
 
 //添加元数据
 func Insert(md Metadata) (id interface{}, err error) {
-	err = createIndexs(db.Collection(md.Name), md.Indexs)
+	err = createIndexs(md.Name, md.Indexs)
 	if err != nil {
 		return
 	}
 
-	c := db.C(me)
+	c := db.C(me.Name)
 	ir, err := c.InsertOne(
 		context.Background(), md)
 
@@ -108,7 +105,7 @@ func Insert(md Metadata) (id interface{}, err error) {
 
 //获得元数据
 func Get(name string) (metadata Metadata, err error) {
-	c := db.C(me)
+	c := db.C(me.Name)
 	sr := c.FindOne(context.Background(), bson.D{{Key: "name", Value: name}})
 	err = sr.Err()
 	if err != nil {
@@ -121,7 +118,7 @@ func Get(name string) (metadata Metadata, err error) {
 
 //获得全部元数据
 func GetAll() (mds []Metadata, err error) {
-	c := db.C(me)
+	c := db.C(me.Name)
 	cursor, err := c.Find(context.Background(), bson.D{})
 	if err != nil {
 		return
@@ -132,13 +129,13 @@ func GetAll() (mds []Metadata, err error) {
 
 //删除元数据
 func Del(name string) (err error) {
-	c := db.C(me)
+	c := db.C(me.Name)
 	_, err = c.DeleteOne(context.Background(), bson.D{{Key: "name", Value: name}})
 	return err
 }
 
 //通过元数据创建数据
-func InsertOneFromMetadata(metadataName string, fields map[string]interface{}) (newid interface{}, err error) {
+func InsertOneFromMetadata(metadataName string, fields bson.M) (newid interface{}, err error) {
 	md, err := Get(metadataName)
 	if err != nil {
 		return
@@ -152,13 +149,16 @@ func InsertOneFromMetadata(metadataName string, fields map[string]interface{}) (
 	}
 	//todo:缺少类型检查
 
-	c := db.C(db.Collection(metadataName))
+	c := db.C(metadataName)
 	ir, err := c.InsertOne(context.Background(), data)
-	newid = ir.InsertedID
+	if ir != nil {
+		newid = ir.InsertedID
+	}
+
 	return
 }
 
-func UpdateByIDFromMetadata(metadataName string, id interface{}, fields map[string]interface{}) (err error) {
+func UpdateByIDFromMetadata(metadataName string, id interface{}, fields bson.M) (err error) {
 	md, err := Get(metadataName)
 	if err != nil {
 		return
@@ -172,7 +172,7 @@ func UpdateByIDFromMetadata(metadataName string, id interface{}, fields map[stri
 	}
 	//todo:缺少类型检查
 
-	c := db.C(db.Collection(metadataName))
+	c := db.C(metadataName)
 	_, err = c.UpdateByID(context.Background(), id, data)
 
 	return
@@ -184,13 +184,13 @@ func DeleteByIDFromMetadata(metadataName string, id interface{}) (err error) {
 		return
 	}
 
-	c := db.C(db.Collection(metadataName))
+	c := db.C(metadataName)
 	_, err = c.DeleteOne(context.Background(), bson.D{{Key: "_id", Value: id}})
 
 	return
 }
 
-func createIndexs(collectionName db.Collection, indexs []Index) (err error) {
+func createIndexs(collectionName string, indexs []Index) (err error) {
 
 	for _, index := range indexs {
 
@@ -231,7 +231,7 @@ func createMetadataIndex() {
 		},
 	}
 
-	err := createIndexs(me, indexs)
+	err := createIndexs(me.Name, indexs)
 	if err != nil {
 		panic(err)
 	}

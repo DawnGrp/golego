@@ -18,16 +18,15 @@ var themeRoot string = "./theme"
 var theme string = ""
 
 func init() {
+	helper.Register(me)
 	webserver.AddSetRouterHook(setTemplate)
 	bootstrap.AddBeforeRunHook(initTemplate)
 }
 
 //实现一个开放的GetInfo方法
-func GetInfo() helper.Info {
-	return helper.Info{
-		Name:      "theme",
-		HumanName: "主题模块",
-	}
+var me = helper.ModuleInfo{
+	Name:      "theme",
+	HumanName: "主题模块",
 }
 
 func setTemplate(r *gin.Engine) {
@@ -43,10 +42,10 @@ func setTemplate(r *gin.Engine) {
 func initTemplate() {
 	//获得本模块的配置
 	//如果不存在，则写入一个默认配置
-	cfg, ok := config.Get(GetInfo().Name)
+	cfg, ok := config.Get(me.Name)
 	if !ok {
 		cfg = gjson.Parse(`{"theme":"default"}`)
-		config.Set(GetInfo().Name, cfg)
+		config.Set(me.Name, cfg)
 	}
 
 	theme = cfg.Get("theme").String()
@@ -58,7 +57,7 @@ func initTemplate() {
 	}
 
 	//根据模块配置，检查是否存在对应的模版文件，如果不存在，自动生成
-	for _, info := range helper.ModuleInfos {
+	for _, info := range helper.GetModuleInfos() {
 		// fmt.Println(info.Name, info.Templates)
 
 		err := os.MkdirAll(fmt.Sprintf("%s/%s/templates/%s", themeRoot, theme, info.Name), 0755)

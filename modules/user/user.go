@@ -1,30 +1,56 @@
 package user
 
 import (
+	"context"
 	"golego/modules/bootstrap"
+	db "golego/modules/database"
 	"golego/modules/helper"
 	"golego/modules/metadata"
+	"golego/modules/webserver"
+	"net/http"
+	"strings"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
+	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func GetInfo() helper.Info {
-	return helper.Info{
-		Name:      "user",
-		HumanName: "用户模块",
-	}
+var me = helper.ModuleInfo{
+	Name:      "user",
+	HumanName: "用户模块",
+	Templates: []string{
+		"login",
+	},
 }
 
 func init() {
+	helper.Register(me)
+	db.RegisterC(me.Name)
 	bootstrap.AddRunHook(createUserMetadata)
+	webserver.AddMiddleWaveHook(setSession())
+	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+		return webserver.GET, "/login", login
+	})
+	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+		return webserver.POST, "/login", loginPost
+	})
+	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+		return webserver.POST, "/adduser", addUserPost
+	})
 }
+
+var sessionKey = strings.Replace(uuid.NewV4().String(), "-", "", -1)
 
 //创建user集合以及索引
 func createUserMetadata() {
 
 	md := metadata.Metadata{
-		Name:      GetInfo().Name,
-		HumanName: GetInfo().HumanName,
+		Name:      me.Name,
+		HumanName: me.HumanName,
 		Fileds: []metadata.Filed{
 			{
 				Name: "account",
@@ -47,5 +73,83 @@ func createUserMetadata() {
 	if err != nil && !mongo.IsDuplicateKeyError(err) {
 		panic(err)
 	}
+
+}
+
+func setSession() func(c *gin.Context) {
+
+	store := memstore.NewStore([]byte(sessionKey))
+	store.Options(sessions.Options{
+		MaxAge: 0, // seems this works
+		Path:   "/",
+	})
+
+	return sessions.Sessions("auth", store)
+}
+
+func login(c *gin.Context) {
+	c.HTML(http.StatusOK, "user/login", gin.H{})
+}
+
+func loginPost(c *gin.Context) {
+
+	account := c.PostForm("account")
+	password := c.PostForm("password")
+	result := gin.H{
+		"account": account, "password": password, "err": "",
+	}
+
+	defer c.HTML(http.StatusOK, "user/login", result)
+
+	r := db.C(me.Name).FindOne(context.Background(), bson.D{{Key: "account", Value: account}})
+
+	if r.Err() != nil {
+		if r.Err() == mongo.ErrNoDocuments {
+			result["err"] = "no this user"
+		} else {
+			result["err"] = r.Err().Error()
+		}
+		return
+	}
+
+	user := map[string]string{}
+	err := r.Decode(&user)
+	if err != nil {
+		result["err"] = err.Error()
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user["password"]), []byte(password))
+	if err != nil {
+		result["err"] = err.Error()
+		return
+	}
+
+}
+
+func addUserPost(c *gin.Context) {
+	account := c.PostForm("account")
+	password := c.PostForm("password")
+
+	result := gin.H{
+		"err": "",
+	}
+
+	defer c.HTML(http.StatusOK, "user/login", result)
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		result["err"] = err.Error()
+		return
+	}
+
+	id, err := metadata.InsertOneFromMetadata(me.Name, bson.M{"account": account, "password": string(hashPassword)})
+
+	if err != nil {
+		result["err"] = err.Error()
+		return
+	}
+
+	result["id"] = id
 
 }

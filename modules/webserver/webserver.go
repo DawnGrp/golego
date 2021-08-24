@@ -12,15 +12,14 @@ import (
 
 //HOOK_5. 在init函数中挂载钩子
 func init() {
+	helper.Register(me)
 	bootstrap.AddRunHook(startServer)
 }
 
 //实现一个开放的GetInfo方法
-func GetInfo() helper.Info {
-	return helper.Info{
-		Name:      "webserver",
-		HumanName: "网络服务模块",
-	}
+var me = helper.ModuleInfo{
+	Name:      "webserver",
+	HumanName: "网络服务模块",
 }
 
 //HOOK_1. 定义钩子类型，钩子类型为一个函数类型
@@ -96,10 +95,10 @@ func startServer() {
 
 	//获得本模块的配置
 	//如果不存在，则写入一个默认配置
-	cfg, ok := config.Get(GetInfo().Name)
+	cfg, ok := config.Get(me.Name)
 	if !ok {
 		cfg = gjson.Parse(`{"addr":":8082"}`)
-		config.Set(GetInfo().Name, cfg)
+		config.Set(me.Name, cfg)
 	}
 
 	fmt.Println(router.FuncMap)

@@ -2,13 +2,16 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"golego/modules/bootstrap"
 	"golego/modules/config"
 	"golego/modules/helper"
 	"golego/modules/webserver"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/tidwall/gjson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,20 +19,20 @@ import (
 )
 
 //实现一个开放的GetInfo方法
-func GetInfo() helper.Info {
-	return helper.Info{
-		Name:      "database",
-		HumanName: "数据库模块",
-		Templates: []string{"status"},
-	}
+
+var me = helper.ModuleInfo{
+	Name:      "database",
+	HumanName: "数据库模块",
+	Templates: []string{"status"},
 }
 
 var db *mongo.Database
 var err error
 
-type Collection string
+var collections sync.Map
 
 func init() {
+	helper.Register(me)
 	bootstrap.AddBeforeRunHook(connect)
 	bootstrap.AddAfterRunHook(disconnect)
 	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
@@ -38,10 +41,10 @@ func init() {
 }
 
 func connect() {
-	cfg, ok := config.Get(GetInfo().Name)
+	cfg, ok := config.Get(me.Name)
 	if !ok {
 		cfg = gjson.Parse(`{"conn":"mongodb://localhost:27017","db":"golego"}`)
-		config.Set(GetInfo().Name, cfg)
+		config.Set(me.Name, cfg)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -59,13 +62,30 @@ func connect() {
 }
 
 //GetDataBase 获得数据库
-func DB() *mongo.Database {
+func getDB() *mongo.Database {
 	return db
 }
 
+//注册集合，避免集合冲突
+func RegisterC(name string) {
+
+	if _, ok := collections.Load(name); ok {
+		err = fmt.Errorf("collection [%s] is exist", name)
+		panic(err)
+	}
+
+	collections.Store(name, 1)
+
+}
+
 //GetCollection 获得集合对象
-func C(name Collection) *mongo.Collection {
-	return DB().Collection(string(name))
+func C(name string) *mongo.Collection {
+	//未注册的集合返回空，不允许操作。
+	if _, ok := collections.Load(name); !ok {
+		return nil
+	}
+
+	return getDB().Collection(name)
 }
 
 func disconnect() {

@@ -3,38 +3,24 @@ package modules
 //导入所有模块包，以执行所有包的Init函数
 import (
 	"golego/modules/bootstrap"
-	"golego/modules/config"
-	"golego/modules/database"
-	"golego/modules/document"
-	"golego/modules/helper"
-	"golego/modules/metadata"
-	"golego/modules/theme"
-	"golego/modules/user"
-	"golego/modules/webserver"
-)
 
-//取得所有包的Info信息
-func GetModuleInfos() map[string]helper.Info {
-	return map[string]helper.Info{
-		bootstrap.GetInfo().Name: bootstrap.GetInfo(),
-		webserver.GetInfo().Name: webserver.GetInfo(),
-		helper.GetInfo().Name:    helper.GetInfo(),
-		theme.GetInfo().Name:     theme.GetInfo(),
-		database.GetInfo().Name:  database.GetInfo(),
-		config.GetInfo().Name:    config.GetInfo(),
-		metadata.GetInfo().Name:  metadata.GetInfo(),
-		document.GetInfo().Name:  document.GetInfo(),
-		user.GetInfo().Name:      user.GetInfo(),
-	}
-}
+	_ "golego/modules/config"
+	_ "golego/modules/database"
+	_ "golego/modules/document"
+	"golego/modules/helper"
+
+	_ "golego/modules/metadata"
+	_ "golego/modules/theme"
+	_ "golego/modules/user"
+	_ "golego/modules/webserver"
+)
 
 //系统启动模块的入口
 func Start() {
 
-	helper.ModuleInfos = GetModuleInfos()
 	bootstrap.BeforeRun()
 	bootstrap.Run()
-	bootstrap.AfterRun()
 	helper.WaitGroup.Wait()
+	bootstrap.AfterRun()
 
 }

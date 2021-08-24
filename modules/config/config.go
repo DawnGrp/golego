@@ -15,16 +15,15 @@ const (
 	default_Config_Path = "./config.json"
 )
 
-var config map[string]gjson.Result
-
-func GetInfo() helper.Info {
-	return helper.Info{
-		Name:      "config",
-		HumanName: "配置模块",
-	}
+var me = helper.ModuleInfo{
+	Name:      "config",
+	HumanName: "配置模块",
 }
 
+var config map[string]gjson.Result
+
 func init() {
+	helper.Register(me)
 	bootstrap.AddBeforeRunHook(loadConfig)
 	bootstrap.AddAfterRunHook(saveConfig)
 }

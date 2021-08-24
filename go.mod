@@ -11,5 +11,6 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/tidwall/gjson v1.8.1 // indirect
 	go.mongodb.org/mongo-driver v1.7.1
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 )
