@@ -22,13 +22,15 @@ func GetInfo() helper.Info {
 }
 
 func init() {
+	//系统启动时创建元数据模块的集合和索引
 	bootstrap.AddRunHook(createMetadataIndex)
 }
 
-type FiledType string
-type IndexType string
+type FiledType string //定义字段类型
+type IndexType string //定义索引类型
 
 const (
+	//字段类型的项
 	FiledType_String    FiledType = "string"
 	FiledType_Int       FiledType = "int"
 	FiledType_Float     FiledType = "float"
@@ -36,11 +38,13 @@ const (
 	FiledType_Array     FiledType = "array"
 	FiledType_Map       FiledType = "map"
 
+	//索引类型的项
 	IndexType_Unique IndexType = "unique"
 	IndexType_Index  IndexType = "index"
 )
 
-var me = db.RegisterCollection("metadata")
+//根据名称创建一个集合对象
+var me = db.Collection(GetInfo().Name)
 
 type Metadata struct {
 	Name      string  `bson:"name"`
@@ -62,8 +66,7 @@ type Index struct {
 	Fileds []string  `bson:"fileds"`
 }
 
-//todo: 在什么时候添加index呢 ？，应该在Replace和Insert的时候添加
-
+//更新替换一个元数据
 func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error) {
 
 	err = createIndexs(db.Collection(md.Name), md.Indexs)
@@ -85,6 +88,7 @@ func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error
 	return
 }
 
+//添加元数据
 func Insert(md Metadata) (id interface{}, err error) {
 	err = createIndexs(db.Collection(md.Name), md.Indexs)
 	if err != nil {
@@ -102,6 +106,7 @@ func Insert(md Metadata) (id interface{}, err error) {
 	return
 }
 
+//获得元数据
 func Get(name string) (metadata Metadata, err error) {
 	c := db.C(me)
 	sr := c.FindOne(context.Background(), bson.D{{Key: "name", Value: name}})
@@ -114,6 +119,7 @@ func Get(name string) (metadata Metadata, err error) {
 	return
 }
 
+//获得全部元数据
 func GetAll() (mds []Metadata, err error) {
 	c := db.C(me)
 	cursor, err := c.Find(context.Background(), bson.D{})
@@ -124,6 +130,7 @@ func GetAll() (mds []Metadata, err error) {
 	return
 }
 
+//删除元数据
 func Del(name string) (err error) {
 	c := db.C(me)
 	_, err = c.DeleteOne(context.Background(), bson.D{{Key: "name", Value: name}})

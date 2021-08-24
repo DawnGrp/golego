@@ -8,11 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	usermdname      = "user"
-	usermdhumanname = "用户"
-)
-
 func GetInfo() helper.Info {
 	return helper.Info{
 		Name:      "user",
@@ -24,11 +19,12 @@ func init() {
 	bootstrap.AddRunHook(createUserMetadata)
 }
 
+//创建user集合以及索引
 func createUserMetadata() {
 
 	md := metadata.Metadata{
-		Name:      usermdname,
-		HumanName: usermdhumanname,
+		Name:      GetInfo().Name,
+		HumanName: GetInfo().HumanName,
 		Fileds: []metadata.Filed{
 			{
 				Name: "account",

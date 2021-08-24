@@ -76,7 +76,7 @@ func initTemplate() {
 					panic(err)
 				}
 
-				_, err = f.Write([]byte(fmt.Sprintf("{{define \"%s/%s\"}}\n\n{{end}}", info.Name, template)))
+				_, err = f.Write([]byte(fmt.Sprintf("{{define \"%s/%s\"}}\n%s\n{{end}}", info.Name, template, info.HumanName)))
 				if err != nil {
 					panic(err)
 				}

@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"golego/modules/bootstrap"
 	"golego/modules/config"
 	"golego/modules/helper"
@@ -30,24 +29,12 @@ var err error
 
 type Collection string
 
-var collections = map[string]int{}
-
 func init() {
 	bootstrap.AddBeforeRunHook(connect)
 	bootstrap.AddAfterRunHook(disconnect)
 	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
 		return webserver.GET, "/status", status
 	})
-}
-
-func RegisterCollection(C string) Collection {
-	if _, ok := collections[C]; ok {
-		panic(fmt.Errorf("%s exist", C))
-	}
-
-	collections[C] = 1
-
-	return Collection(C)
 }
 
 func connect() {
