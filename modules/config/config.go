@@ -19,7 +19,8 @@ var config map[string]gjson.Result
 
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "config",
+		Name:      "config",
+		HumanName: "配置模块",
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 
 type Info struct {
 	Name        string
+	HumanName   string
 	Description string
 	Templates   []string
 }
@@ -23,6 +24,7 @@ var WaitGroup sync.WaitGroup
 
 func GetInfo() Info {
 	return Info{
-		Name: "config",
+		Name:      "helper",
+		HumanName: "助理模块",
 	}
 }

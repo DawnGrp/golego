@@ -1,7 +1,4 @@
 {
-	"theme": {
-        "theme": "default"
-    },
 	"webserver": {
         "addr": ":8082"
     },
@@ -11,5 +8,8 @@
 	"database": {
         "conn": "mongodb://localhost:27017",
         "db": "golego"
+    },
+	"theme": {
+        "theme": "default"
     }
 }

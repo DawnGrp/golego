@@ -4,6 +4,7 @@ import (
 	"context"
 	db "golego/modules/database"
 	"golego/modules/helper"
+	"strings"
 
 	"golego/modules/bootstrap"
 
@@ -15,7 +16,8 @@ import (
 //实现一个开放的GetInfo方法
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "metadata",
+		Name:      "metadata",
+		HumanName: "元数据模块",
 	}
 }
 
@@ -38,7 +40,6 @@ const (
 	IndexType_Index  IndexType = "index"
 )
 
-// var me, me2 db.Collection
 var me = db.RegisterCollection("metadata")
 
 type Metadata struct {
@@ -64,6 +65,12 @@ type Index struct {
 //todo: 在什么时候添加index呢 ？，应该在Replace和Insert的时候添加
 
 func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error) {
+
+	err = createIndexs(db.Collection(md.Name), md.Indexs)
+	if err != nil {
+		return
+	}
+
 	opts := options.Replace().SetUpsert(no_document_to_insert)
 	c := db.C(me)
 	ir, err := c.ReplaceOne(
@@ -73,11 +80,16 @@ func Replace(md Metadata, no_document_to_insert bool) (id interface{}, err error
 	if err != nil {
 		return
 	}
+
 	id = ir.UpsertedID
 	return
 }
 
 func Insert(md Metadata) (id interface{}, err error) {
+	err = createIndexs(db.Collection(md.Name), md.Indexs)
+	if err != nil {
+		return
+	}
 
 	c := db.C(me)
 	ir, err := c.InsertOne(
@@ -171,15 +183,48 @@ func DeleteByIDFromMetadata(metadataName string, id interface{}) (err error) {
 	return
 }
 
-func createMetadataIndex() {
-	isUnique := true
-	indexName := "unique_name"
-	index := mongo.IndexModel{
-		Keys:    bson.D{{Key: "name", Value: 1}},
-		Options: &options.IndexOptions{Unique: &isUnique, Name: &indexName},
+func createIndexs(collectionName db.Collection, indexs []Index) (err error) {
+
+	for _, index := range indexs {
+
+		var isUnique = index.Type == IndexType_Unique
+
+		var indexName = "index_"
+		if isUnique {
+			indexName = "unique_"
+		}
+		indexName += strings.Join(index.Fileds, "_")
+
+		keys := bson.D{}
+		for _, field := range index.Fileds {
+			keys = append(keys, bson.E{Key: field, Value: 1})
+		}
+
+		indexModel := mongo.IndexModel{
+			Keys:    keys,
+			Options: &options.IndexOptions{Unique: &isUnique, Name: &indexName},
+		}
+
+		indexName, err = db.C(collectionName).Indexes().CreateOne(context.Background(), indexModel)
+
+		if err != nil {
+			break
+		}
 	}
 
-	indexName, err := db.C(me).Indexes().CreateOne(context.Background(), index)
+	return
+}
+
+func createMetadataIndex() {
+
+	indexs := []Index{
+		{
+			Type:   IndexType_Unique,
+			Fileds: []string{"name"},
+		},
+	}
+
+	err := createIndexs(me, indexs)
 	if err != nil {
 		panic(err)
 	}

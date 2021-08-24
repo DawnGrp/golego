@@ -15,7 +15,8 @@ const (
 
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "user",
+		Name:      "user",
+		HumanName: "用户模块",
 	}
 }
 
@@ -38,7 +39,12 @@ func createUserMetadata() {
 				Type: metadata.FiledType_String,
 			},
 		},
-		Indexs: []metadata.Index{},
+		Indexs: []metadata.Index{
+			{
+				Type:   metadata.IndexType_Unique,
+				Fileds: []string{"account"},
+			},
+		},
 	}
 
 	_, err := metadata.Insert(md)

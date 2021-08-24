@@ -5,7 +5,8 @@ import "golego/modules/helper"
 //HOOK_0. 为函数提供一个描述函数
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "bootstrap",
+		Name:      "bootstrap",
+		HumanName: "启动模块",
 	}
 }
 

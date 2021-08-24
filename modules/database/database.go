@@ -20,6 +20,7 @@ import (
 func GetInfo() helper.Info {
 	return helper.Info{
 		Name:      "database",
+		HumanName: "数据库模块",
 		Templates: []string{"status"},
 	}
 }

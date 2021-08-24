@@ -6,6 +6,7 @@ import (
 
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "document",
+		Name:      "document",
+		HumanName: "文档模块",
 	}
 }

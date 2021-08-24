@@ -17,7 +17,8 @@ func init() {
 
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "auth",
+		Name:      "auth",
+		HumanName: "权限模块",
 	}
 }
 

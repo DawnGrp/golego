@@ -18,7 +18,8 @@ func init() {
 //实现一个开放的GetInfo方法
 func GetInfo() helper.Info {
 	return helper.Info{
-		Name: "webserver",
+		Name:      "webserver",
+		HumanName: "网络服务模块",
 	}
 }
 
