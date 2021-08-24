@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"golego/modules/bootstrap"
 	db "golego/modules/database"
 	"golego/modules/helper"
 	"golego/modules/metadata"
@@ -10,8 +9,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -30,15 +27,14 @@ var me = helper.ModuleInfo{
 func init() {
 	helper.Register(me)
 	db.RegisterC(me.Name)
-	bootstrap.AddRunHook(createUserMetadata)
-	webserver.AddMiddleWaveHook(setSession())
-	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+	db.AtConnected(createUserMetadata)
+	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
 		return webserver.GET, "/login", login
 	})
-	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
 		return webserver.POST, "/login", loginPost
 	})
-	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
 		return webserver.POST, "/adduser", addUserPost
 	})
 }
@@ -74,17 +70,6 @@ func createUserMetadata() {
 		panic(err)
 	}
 
-}
-
-func setSession() func(c *gin.Context) {
-
-	store := memstore.NewStore([]byte(sessionKey))
-	store.Options(sessions.Options{
-		MaxAge: 0, // seems this works
-		Path:   "/",
-	})
-
-	return sessions.Sessions("auth", store)
 }
 
 func login(c *gin.Context) {

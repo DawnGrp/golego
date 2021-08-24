@@ -13,7 +13,7 @@ import (
 //HOOK_5. 在init函数中挂载钩子
 func init() {
 	helper.Register(me)
-	bootstrap.AddRunHook(startServer)
+	bootstrap.AtRun(startServer)
 }
 
 //实现一个开放的GetInfo方法
@@ -45,13 +45,13 @@ const (
 )
 
 //HOOK_3. 提供挂入钩子的方法，其他模块可以将处理的函数添加到钩子组中
-func AddSetRouterHook(h set_router_hook) {
+func AtSetRouter(h set_router_hook) {
 	set_router_hooks = append(set_router_hooks, h)
 }
-func AddMiddleWaveHook(h gin.HandlerFunc) {
+func AtMiddleWave(h gin.HandlerFunc) {
 	set_middleWave_hooks = append(set_middleWave_hooks, h)
 }
-func AddSetHandleHook(h set_handle_hook) {
+func AtSetHandle(h set_handle_hook) {
 	set_handle_hooks = append(set_handle_hooks, h)
 }
 

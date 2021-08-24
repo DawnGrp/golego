@@ -19,8 +19,8 @@ var theme string = ""
 
 func init() {
 	helper.Register(me)
-	webserver.AddSetRouterHook(setTemplate)
-	bootstrap.AddBeforeRunHook(initTemplate)
+	webserver.AtSetRouter(setTemplate)
+	bootstrap.AtBeforeRun(initTemplate)
 }
 
 //实现一个开放的GetInfo方法

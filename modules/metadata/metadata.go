@@ -23,7 +23,7 @@ func init() {
 	helper.Register(me)
 	db.RegisterC(me.Name)
 	//系统启动时创建元数据模块的集合和索引
-	bootstrap.AddRunHook(createMetadataIndex)
+	bootstrap.AtRun(createMetadataIndex)
 }
 
 type FiledType string //定义字段类型

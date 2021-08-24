@@ -7,6 +7,7 @@ import (
 	"golego/modules/config"
 	"golego/modules/helper"
 	"golego/modules/webserver"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,17 +28,25 @@ var me = helper.ModuleInfo{
 }
 
 var db *mongo.Database
-var err error
 
 var collections sync.Map
 
+type connectd_hook func()
+
+var connectd_hooks []connectd_hook
+
 func init() {
 	helper.Register(me)
-	bootstrap.AddBeforeRunHook(connect)
-	bootstrap.AddAfterRunHook(disconnect)
-	webserver.AddSetHandleHook(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.GET, "/status", status
+	bootstrap.AtBeforeRun(connect)
+	bootstrap.AtAfterRun(disconnect)
+
+	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+		return webserver.GET, "/collections", getCollections
 	})
+}
+
+func AtConnected(h connectd_hook) {
+	connectd_hooks = append(connectd_hooks, h)
 }
 
 func connect() {
@@ -50,15 +59,20 @@ func connect() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var client *mongo.Client
-	client, err = mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conn").String()))
-
-	if err == nil {
-		err = client.Ping(ctx, readpref.Primary())
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get("conn").String()))
+	if err != nil {
+		panic(err)
+	}
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		panic(err)
 	}
 
 	db = client.Database(cfg.Get("db").String())
 
+	for _, hook := range connectd_hooks {
+		hook()
+	}
 }
 
 //GetDataBase 获得数据库
@@ -70,12 +84,22 @@ func getDB() *mongo.Database {
 func RegisterC(name string) {
 
 	if _, ok := collections.Load(name); ok {
-		err = fmt.Errorf("collection [%s] is exist", name)
+		err := fmt.Errorf("collection [%s] is exist", name)
 		panic(err)
 	}
 
 	collections.Store(name, 1)
 
+}
+
+func Collections() (cs []string) {
+
+	collections.Range(func(key interface{}, value interface{}) bool {
+		cs = append(cs, key.(string))
+		return true
+	})
+
+	return
 }
 
 //GetCollection 获得集合对象
@@ -94,11 +118,6 @@ func disconnect() {
 	}
 }
 
-func status(c *gin.Context) {
-	if err != nil {
-		c.String(200, err.Error())
-	} else {
-		c.String(200, "success")
-	}
-
+func getCollections(c *gin.Context) {
+	c.String(200, strings.Join(Collections(), ","))
 }

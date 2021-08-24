@@ -24,8 +24,8 @@ var config map[string]gjson.Result
 
 func init() {
 	helper.Register(me)
-	bootstrap.AddBeforeRunHook(loadConfig)
-	bootstrap.AddAfterRunHook(saveConfig)
+	bootstrap.AtBeforeRun(loadConfig)
+	bootstrap.AtAfterRun(saveConfig)
 }
 
 func Set(name string, value gjson.Result) {

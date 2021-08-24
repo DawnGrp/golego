@@ -22,15 +22,15 @@ var run_hooks = []run_hook{}
 var after_run_hooks = []after_run_hook{}
 
 //HOOK_3. 提供挂入钩子的方法，其他模块可以将处理的函数添加到钩子组中
-func AddBeforeRunHook(h before_run_hook) {
+func AtBeforeRun(h before_run_hook) {
 	before_run_hooks = append(before_run_hooks, h)
 }
 
-func AddRunHook(h run_hook) {
+func AtRun(h run_hook) {
 	run_hooks = append(run_hooks, h)
 }
 
-func AddAfterRunHook(h after_run_hook) {
+func AtAfterRun(h after_run_hook) {
 	after_run_hooks = append(after_run_hooks, h)
 }
 
