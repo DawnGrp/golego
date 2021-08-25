@@ -112,6 +112,7 @@ func loginPost(c *gin.Context) {
 
 }
 
+//添加用户
 func addUserPost(c *gin.Context) {
 	account := c.PostForm("account")
 	password := c.PostForm("password")
