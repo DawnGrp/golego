@@ -20,7 +20,8 @@ func Testmain() {
 
 type Thetype func(string)
 
-//定义到包
+//已经定义到包
+//end
 
 //实现
 func print(str string) {
