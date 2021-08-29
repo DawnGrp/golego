@@ -40,12 +40,10 @@ func init() {
 	bootstrap.AtBeforeRun(connect)
 	bootstrap.AtAfterRun(disconnect)
 
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.GET, "/collections", getCollections
+	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
+		return "获得数据集合", webserver.GET, "/collections", getCollections
 	})
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.GET, "/collections", getCollections
-	})
+
 }
 
 func AtConnected(h connectd_hook) {

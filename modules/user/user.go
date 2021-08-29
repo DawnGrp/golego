@@ -49,20 +49,20 @@ func init() {
 	db.RegisterC(me.Name)
 	db.AtConnected(updateUserMetadata)
 	webserver.AtMiddleWave(setSession())
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.GET, "/signin", signin
+	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
+		return "登入页面", webserver.GET, "/signin", signin
 	})
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.POST, "/signin", signin
+	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
+		return "登入执行", webserver.POST, "/signin", signin
 	})
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.GET, "/signup", signup
+	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
+		return "注册页面", webserver.GET, "/signup", signup
 	})
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.POST, "/signup", signup
+	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
+		return "注册执行", webserver.POST, "/signup", signup
 	})
-	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
-		return webserver.GET, "/signout", signout
+	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
+		return "退出", webserver.GET, "/signout", signout
 	})
 }
 
