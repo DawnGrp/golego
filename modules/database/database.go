@@ -43,6 +43,9 @@ func init() {
 	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
 		return webserver.GET, "/collections", getCollections
 	})
+	webserver.AtSetHandle(func() (webserver.RequestMethod, string, gin.HandlerFunc) {
+		return webserver.GET, "/collections", getCollections
+	})
 }
 
 func AtConnected(h connectd_hook) {

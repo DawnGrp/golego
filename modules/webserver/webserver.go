@@ -24,12 +24,14 @@ var me = helper.ModuleInfo{
 
 //HOOK_1. 定义钩子类型，钩子类型为一个函数类型
 type set_router_hook func(r *gin.Engine)
-type set_handle_hook func() (method RequestMethod, path string, handlers gin.HandlerFunc)
+type set_handle_hook func() (name string, method RequestMethod, path string, handlers gin.HandlerFunc)
 
 //HOOK_2. 钩子组，接入的钩子必须支持多个，因此需要定一个数组
 var set_router_hooks = []set_router_hook{}
 var set_middleWave_hooks = []gin.HandlerFunc{}
 var set_handle_hooks = []set_handle_hook{}
+
+var actions = map[string]string{}
 
 type RequestMethod string
 
@@ -66,7 +68,15 @@ func startServer() {
 
 	//处理函数钩子
 	for _, hook := range set_handle_hooks {
-		m, p, f := hook()
+
+		n, m, p, f := hook()
+
+		_, ok := actions[n]
+		if ok {
+			panic(fmt.Errorf("%s exist", n))
+		}
+
+		actions[n] = fmt.Sprintf("%s:%s", m, p)
 
 		switch {
 		case m == POST:
@@ -101,13 +111,13 @@ func startServer() {
 		config.Set(me.Name, cfg)
 	}
 
-	fmt.Println(router.FuncMap)
-
-	fmt.Println(router.Handlers)
-
 	helper.WaitGroup.Add(1)
 	go func() {
 		router.Run(cfg.Get("addr").String())
 		helper.WaitGroup.Done()
 	}()
+}
+
+func Actions() map[string]string {
+	return actions
 }

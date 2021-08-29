@@ -2,65 +2,43 @@ package auth
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
 
-	fileadapter "github.com/casbin/casbin/persist/file-adapter"
 	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/model"
 )
 
 func TestFunc(t *testing.T) {
-	i := 0
-	fmt.Println("i =", i)
-	fmt.Println("FuncName1 =", func() string { return ff() }())
 
-}
+	// sub := map[string]interface{}{
+	// 	"name": "zeta",
+	// 	"age":  18,
+	// }
 
-func ff() string {
-	return runFuncName()
-}
+	sub := "zeta"
+	obj := map[string]interface{}{
+		"role":      "admin",
+		"limit_age": 20,
+	}
+	act := "read" // 用户对资源执行的操作。
 
-func runFuncName() string {
+	e := Enforcer()
 
-	pc, _, _, _ := runtime.Caller(1)
-	f := runtime.FuncForPC(pc).Name()
+	ok, err := e.Enforce(sub, obj, act)
 
-	return f
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(ok)
 }
 
 func Enforcer() *casbin.Enforcer {
 
-	// 从字符串初始化模型
-	text :=
-		`
-	[request_definition]
-	r = sub, obj, act
-	
-	[policy_definition]
-	p = sub, obj, act
-	
-	[role_definition]
-	g = _, _
-	
-	[policy_effect]
-	e = some(where (p.eft == allow))
-	
-	[matchers]
-	m = g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act
-	`
-	m, _ := model.NewModelFromString(text)
-
-	// 从CSV文件adapter加载策略规则
-	// 使用自己的 adapter 替换
-	a := fileadapter.NewAdapter("")
-
 	// 创建enforcer
-	e, err := casbin.NewEnforcer(m, a)
+	e, err := casbin.NewEnforcer("/Users/zeta/workspace/golego/modules/auth/model.conf",
+		"/Users/zeta/workspace/golego/modules/auth/policy.csv")
 
 	if err != nil {
-		return nil
+		fmt.Println(err)
 	}
-
 	return e
 }

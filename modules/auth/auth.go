@@ -1,6 +1,7 @@
 package auth
 
 import (
+	db "golego/modules/database"
 	"golego/modules/helper"
 )
 
@@ -11,6 +12,7 @@ var me = helper.ModuleInfo{
 
 func init() {
 	helper.Register(me)
+	db.RegisterC(me.Name)
 }
 
 func Register() (err error) {

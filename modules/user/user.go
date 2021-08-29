@@ -22,7 +22,7 @@ var me = helper.ModuleInfo{
 	Name:      "user",
 	HumanName: "用户模块",
 	Templates: []string{
-		"login",
+		"signup", "signin", "signout",
 	},
 }
 
