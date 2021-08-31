@@ -89,10 +89,11 @@ func startServer() {
 			panic(fmt.Errorf("%s exist", n))
 		}
 
+		_, fields := utils.GetStruct(s)
 		actions[n] = action{
 			Name:   n,
 			Action: fmt.Sprintf("%s:%s", m, p),
-			Params: utils.GetStruct(s),
+			Params: fields,
 		}
 
 		switch {
