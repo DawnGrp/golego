@@ -40,9 +40,7 @@ func init() {
 	bootstrap.AtBeforeRun(connect)
 	bootstrap.AtAfterRun(disconnect)
 
-	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
-		return "获得数据集合", webserver.GET, "/collections", getCollections
-	})
+	webserver.AtSetHandle(getCollections)
 
 }
 
@@ -119,6 +117,9 @@ func disconnect() {
 	}
 }
 
-func getCollections(c *gin.Context) {
-	c.String(200, strings.Join(Collections(), ","))
+func getCollections() (string, interface{}, webserver.RequestMethod, string, gin.HandlerFunc) {
+
+	return "获得数据集合", nil, webserver.GET, "/collections", func(c *gin.Context) {
+		c.String(200, strings.Join(Collections(), ","))
+	}
 }

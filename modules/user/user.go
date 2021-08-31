@@ -49,21 +49,12 @@ func init() {
 	db.RegisterC(me.Name)
 	db.AtConnected(updateUserMetadata)
 	webserver.AtMiddleWave(setSession())
-	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
-		return "登入页面", webserver.GET, "/signin", signin
-	})
-	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
-		return "登入执行", webserver.POST, "/signin", signin
-	})
-	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
-		return "注册页面", webserver.GET, "/signup", signup
-	})
-	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
-		return "注册执行", webserver.POST, "/signup", signup
-	})
-	webserver.AtSetHandle(func() (string, webserver.RequestMethod, string, gin.HandlerFunc) {
-		return "退出", webserver.GET, "/signout", signout
-	})
+	webserver.AtMiddleWave(auth)
+	webserver.AtSetHandle(signinGet)
+	webserver.AtSetHandle(signinPost)
+	webserver.AtSetHandle(signupGet)
+	webserver.AtSetHandle(signupPost)
+	webserver.AtSetHandle(signout)
 }
 
 //初始化会话的key，写在这里，会在每次启动的时候都用不同的会话键
@@ -107,90 +98,116 @@ func updateUserMetadata() {
 
 }
 
-func signin(c *gin.Context) {
-	if c.Request.Method == "GET" {
-		c.HTML(http.StatusOK, "user/login", gin.H{})
-		return
-	}
+func signinGet() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
 
-	account := c.PostForm("account")
-	password := c.PostForm("password")
-	result := gin.H{
-		"account": account, "password": password, "err": "",
-	}
+	return "登入页面", nil, webserver.GET, "/signin",
+		func(c *gin.Context) {
 
-	defer c.HTML(http.StatusOK, "user/login", result)
+			c.HTML(http.StatusOK, "user/login", gin.H{})
 
-	r := db.C(me.Name).FindOne(context.Background(), bson.D{{Key: "account", Value: account}})
-
-	if r.Err() != nil {
-		if r.Err() == mongo.ErrNoDocuments {
-			result["err"] = "no this user"
-		} else {
-			result["err"] = r.Err().Error()
 		}
-		return
-	}
+}
 
-	user := map[string]interface{}{}
-	err := r.Decode(&user)
-	if err != nil {
-		result["err"] = err.Error()
-		return
+func signinPost() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
+	type input struct {
+		Account  string `json:"account" form:"account" name:"账户"`
+		Password string `json:"password" form:"password" name:"密码"`
 	}
+	return "登入执行", new(input), webserver.POST, "/signin",
+		func(c *gin.Context) {
 
-	err = bcrypt.CompareHashAndPassword([]byte(user["password"].(string)), []byte(password))
-	if err != nil {
-		result["err"] = err.Error()
-		return
-	}
+			account := c.PostForm("account")
+			password := c.PostForm("password")
+			result := gin.H{
+				"account": account, "password": password, "err": "",
+			}
 
-	session := sessions.Default(c)
-	defer session.Save()
-	session.Set("account", account)
+			defer c.HTML(http.StatusOK, "user/login", result)
 
-	for _, h := range set_session_hooks {
-		session.Set(h(user))
-	}
+			r := db.C(me.Name).FindOne(context.Background(), bson.D{{Key: "account", Value: account}})
+
+			if r.Err() != nil {
+				if r.Err() == mongo.ErrNoDocuments {
+					result["err"] = "no this user"
+				} else {
+					result["err"] = r.Err().Error()
+				}
+				return
+			}
+
+			user := map[string]interface{}{}
+			err := r.Decode(&user)
+			if err != nil {
+				result["err"] = err.Error()
+				return
+			}
+
+			err = bcrypt.CompareHashAndPassword([]byte(user["password"].(string)), []byte(password))
+			if err != nil {
+				result["err"] = err.Error()
+				return
+			}
+
+			session := sessions.Default(c)
+			defer session.Save()
+			session.Set("account", account)
+
+			for _, h := range set_session_hooks {
+				session.Set(h(user))
+			}
+		}
 }
 
 //添加用户
-func signup(c *gin.Context) {
+func signupGet() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
 
-	if c.Request.Method == "GET" {
+	return "注册页面", nil, webserver.GET, "/signup", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "user/signup", gin.H{})
-		return
-	}
-	account := c.PostForm("account")
-	password := c.PostForm("password")
 
-	result := gin.H{
-		"err": "",
 	}
 
-	defer c.HTML(http.StatusOK, "user/login", result)
+}
+func signupPost() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
 
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		result["err"] = err.Error()
-		return
+	type input struct {
+		Account  string `json:"account" form:"account" name:"账户"`
+		Password string `json:"password" form:"password" name:"密码"`
 	}
 
-	id, err := metadata.InsertOneFromMetadata(me.Name, bson.M{"account": account, "password": string(hashPassword)})
+	return "注册执行", new(input), webserver.POST, "/signup", func(c *gin.Context) {
+		account := c.PostForm("account")
+		password := c.PostForm("password")
 
-	if err != nil {
-		result["err"] = err.Error()
-		return
+		result := gin.H{
+			"err": "",
+		}
+
+		defer c.HTML(http.StatusOK, "user/login", result)
+
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			result["err"] = err.Error()
+			return
+		}
+
+		id, err := metadata.InsertOneFromMetadata(me.Name, bson.M{"account": account, "password": string(hashPassword)})
+
+		if err != nil {
+			result["err"] = err.Error()
+			return
+		}
+
+		result["id"] = id
 	}
-
-	result["id"] = id
 
 }
 
-func signout(c *gin.Context) {
-	session := sessions.Default(c)
-	session.Clear()
-	session.Save()
+func signout() (string, interface{}, webserver.RequestMethod, string, gin.HandlerFunc) {
+	return "注销", nil, webserver.GET, "/signout", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Clear()
+		session.Save()
+	}
 }
 
 func setSession() func(c *gin.Context) {

@@ -1,16 +1,11 @@
 package user
 
 import (
-	"golego/modules/webserver"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
-
-func init() {
-	webserver.AtMiddleWave(auth)
-}
 
 type auth_hook func(*gin.Context) bool
 
