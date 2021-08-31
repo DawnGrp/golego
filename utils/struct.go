@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func GetStruct(structPtr interface{}) (r [][]string) {
+func GetStruct(structPtr interface{}) (name string, r [][]string) {
 
 	if structPtr == nil {
 		return
@@ -18,6 +18,8 @@ func GetStruct(structPtr interface{}) (r [][]string) {
 	}
 
 	v = v.Elem()
+
+	name = v.Type().Name()
 
 	for i := 0; i < v.NumField(); i++ {
 
