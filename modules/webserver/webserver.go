@@ -44,7 +44,7 @@ type action struct {
 	Params [][]string
 }
 
-var actions = map[string]action{} //不能用普通的map，用数组吧
+var actions = []action{} //不能用普通的map，用数组吧
 
 type Method string
 
@@ -84,17 +84,18 @@ func startServer() {
 
 		n, s, m, p, f := hook()
 
-		_, ok := actions[n]
-		if ok {
-			panic(fmt.Errorf("%s exist", n))
+		for _, action := range actions {
+			if n == action.Name {
+				panic(fmt.Errorf("%s exist", n))
+			}
 		}
 
 		_, fields := utils.GetStruct(s)
-		actions[n] = action{
+		actions = append(actions, action{
 			Name:   n,
 			Action: fmt.Sprintf("%s:%s", m, p),
 			Params: fields,
-		}
+		})
 
 		switch {
 		case m == POST:
@@ -136,7 +137,7 @@ func startServer() {
 	}()
 }
 
-func Actions() map[string]action {
+func Actions() []action {
 	return actions
 }
 

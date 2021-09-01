@@ -26,9 +26,7 @@ func GetStruct(structPtr interface{}) (name string, r [][]string) {
 		r = append(r, []string{
 			v.Type().Field(i).Name,
 			v.Type().Field(i).Type.String(),
-			v.Type().Field(i).Tag.Get("name"),
-			v.Type().Field(i).Tag.Get("json"),
-			v.Type().Field(i).Tag.Get("form"),
+			string(v.Type().Field(i).Tag), //reflect.StructTag
 		})
 
 	}
