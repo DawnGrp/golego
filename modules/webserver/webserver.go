@@ -27,9 +27,9 @@ var me = helper.ModuleInfo{
 //HOOK_1. 定义钩子类型，钩子类型为一个函数类型
 type set_router_hook func(r *gin.Engine)
 type set_handle_hook func() (
-	name string,
+	human_name string,
 	paramsStructPtr interface{},
-	method RequestMethod,
+	method Method,
 	path string,
 	handlers gin.HandlerFunc)
 
@@ -44,19 +44,19 @@ type action struct {
 	Params [][]string
 }
 
-var actions = map[string]action{}
+var actions = map[string]action{} //不能用普通的map，用数组吧
 
-type RequestMethod string
+type Method string
 
 const (
-	POST    RequestMethod = "POST"
-	GET     RequestMethod = "GET"
-	DELETE  RequestMethod = "DELETE"
-	PATCH   RequestMethod = "PATCH"
-	PUT     RequestMethod = "PUT"
-	OPTIONS RequestMethod = "OPTIONS"
-	HEAD    RequestMethod = "HEAD"
-	ANY     RequestMethod = "ANY"
+	POST    Method = "POST"
+	GET     Method = "GET"
+	DELETE  Method = "DELETE"
+	PATCH   Method = "PATCH"
+	PUT     Method = "PUT"
+	OPTIONS Method = "OPTIONS"
+	HEAD    Method = "HEAD"
+	ANY     Method = "ANY"
 )
 
 //HOOK_3. 提供挂入钩子的方法，其他模块可以将处理的函数添加到钩子组中
@@ -140,7 +140,7 @@ func Actions() map[string]action {
 	return actions
 }
 
-func getActions() (name string, paramsStructPtr interface{}, method RequestMethod, path string, handlers gin.HandlerFunc) {
+func getActions() (name string, paramsStructPtr interface{}, method Method, path string, handlers gin.HandlerFunc) {
 	return "获取参数列表", nil, GET, "/getactions", func(c *gin.Context) {
 		c.JSON(200, gin.H{"actions": Actions()})
 	}

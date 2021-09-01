@@ -5,7 +5,7 @@ import (
 	db "golego/modules/database"
 	"golego/modules/helper"
 	"golego/modules/metadata"
-	"golego/modules/webserver"
+	web "golego/modules/webserver"
 	"net/http"
 	"strings"
 
@@ -48,13 +48,13 @@ func init() {
 	helper.Register(me)
 	db.RegisterC(me.Name)
 	db.AtConnected(updateUserMetadata)
-	webserver.AtMiddleWave(setSession())
-	webserver.AtMiddleWave(auth)
-	webserver.AtSetHandle(signinGet)
-	webserver.AtSetHandle(signinPost)
-	webserver.AtSetHandle(signupGet)
-	webserver.AtSetHandle(signupPost)
-	webserver.AtSetHandle(signout)
+	web.AtMiddleWave(setSession())
+	web.AtMiddleWave(auth)
+	web.AtSetHandle(signinGet)
+	web.AtSetHandle(signinPost)
+	web.AtSetHandle(signupGet)
+	web.AtSetHandle(signupPost)
+	web.AtSetHandle(signout)
 }
 
 //初始化会话的key，写在这里，会在每次启动的时候都用不同的会话键
@@ -98,9 +98,9 @@ func updateUserMetadata() {
 
 }
 
-func signinGet() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
+func signinGet() (name string, paramsStructPtr interface{}, method web.Method, path string, handlers gin.HandlerFunc) {
 
-	return "登入页面", nil, webserver.GET, "/signin",
+	return "登入页面", nil, web.GET, "/signin",
 		func(c *gin.Context) {
 
 			c.HTML(http.StatusOK, "user/login", gin.H{})
@@ -108,12 +108,12 @@ func signinGet() (name string, paramsStructPtr interface{}, method webserver.Req
 		}
 }
 
-func signinPost() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
+func signinPost() (name string, paramsStructPtr interface{}, method web.Method, path string, handlers gin.HandlerFunc) {
 	type input struct {
 		Account  string `json:"account" form:"account" name:"账户"`
 		Password string `json:"password" form:"password" name:"密码"`
 	}
-	return "登入执行", new(input), webserver.POST, "/signin",
+	return "登入执行", new(input), web.POST, "/signin",
 		func(c *gin.Context) {
 
 			account := c.PostForm("account")
@@ -159,22 +159,22 @@ func signinPost() (name string, paramsStructPtr interface{}, method webserver.Re
 }
 
 //添加用户
-func signupGet() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
+func signupGet() (name string, paramsStructPtr interface{}, method web.Method, path string, handlers gin.HandlerFunc) {
 
-	return "注册页面", nil, webserver.GET, "/signup", func(c *gin.Context) {
+	return "注册页面", nil, web.GET, "/signup", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "user/signup", gin.H{})
 
 	}
 
 }
-func signupPost() (name string, paramsStructPtr interface{}, method webserver.RequestMethod, path string, handlers gin.HandlerFunc) {
+func signupPost() (name string, paramsStructPtr interface{}, method web.Method, path string, handlers gin.HandlerFunc) {
 
 	type input struct {
 		Account  string `json:"account" form:"account" name:"账户"`
 		Password string `json:"password" form:"password" name:"密码"`
 	}
 
-	return "注册执行", new(input), webserver.POST, "/signup", func(c *gin.Context) {
+	return "注册执行", new(input), web.POST, "/signup", func(c *gin.Context) {
 		account := c.PostForm("account")
 		password := c.PostForm("password")
 
@@ -202,8 +202,8 @@ func signupPost() (name string, paramsStructPtr interface{}, method webserver.Re
 
 }
 
-func signout() (string, interface{}, webserver.RequestMethod, string, gin.HandlerFunc) {
-	return "注销", nil, webserver.GET, "/signout", func(c *gin.Context) {
+func signout() (string, interface{}, web.Method, string, gin.HandlerFunc) {
+	return "注销", nil, web.GET, "/signout", func(c *gin.Context) {
 		session := sessions.Default(c)
 		session.Clear()
 		session.Save()
@@ -220,3 +220,5 @@ func setSession() func(c *gin.Context) {
 
 	return sessions.Sessions("auth", store)
 }
+
+//https://github.com/open-policy-agent/opa

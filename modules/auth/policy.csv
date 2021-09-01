@@ -1,2 +1,0 @@
-p,r.user.department=='admin'&& r.user.role='super', POST_user/add
-p,r.user.department=='admin'&& r.input.name='book', POST_book/add

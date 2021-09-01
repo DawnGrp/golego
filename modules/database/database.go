@@ -117,7 +117,7 @@ func disconnect() {
 	}
 }
 
-func getCollections() (string, interface{}, webserver.RequestMethod, string, gin.HandlerFunc) {
+func getCollections() (string, interface{}, webserver.Method, string, gin.HandlerFunc) {
 
 	return "获得数据集合", nil, webserver.GET, "/collections", func(c *gin.Context) {
 		c.String(200, strings.Join(Collections(), ","))
