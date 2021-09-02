@@ -6,6 +6,7 @@ import (
 	"golego/modules/config"
 	"golego/modules/helper"
 	"golego/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -40,7 +41,8 @@ var set_handle_hooks = []set_handle_hook{}
 
 type action struct {
 	Name   string
-	Action string
+	Method Method
+	Path   string
 	Params [][]string
 }
 
@@ -84,6 +86,8 @@ func startServer() {
 
 		n, s, m, p, f := hook()
 
+		p = strings.Trim(p, "/")
+
 		for _, action := range actions {
 			if n == action.Name {
 				panic(fmt.Errorf("%s exist", n))
@@ -93,7 +97,8 @@ func startServer() {
 		_, fields := utils.GetStruct(s)
 		actions = append(actions, action{
 			Name:   n,
-			Action: fmt.Sprintf("%s:%s", m, p),
+			Method: m,
+			Path:   p,
 			Params: fields,
 		})
 

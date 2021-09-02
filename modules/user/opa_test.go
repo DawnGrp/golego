@@ -27,19 +27,13 @@ func TestOpa(t *testing.T) {
 	// Load the input document from stdin.
 	var input interface{}
 
-	inputString := `{
-			"user": "bob",
-			"age": 19,
-			"method": "post",
-			"path":"doc"
-		}`
-
-	err = json.Unmarshal([]byte(inputString), &input)
-	if err != nil {
-		fmt.Println(err.Error())
+	input = map[string]interface{}{
+		"user":   "bob",
+		"age":    19,
+		"method": "post",
+		"path":   "doc",
 	}
 
-	fmt.Println(inputString)
 	// Execute the prepared query.
 	rs, err := query.Eval(ctx, rego.EvalInput(input))
 	if err != nil {

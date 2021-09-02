@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	db "golego/modules/database"
 	"golego/modules/helper"
 	"golego/modules/metadata"
@@ -10,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -48,8 +48,6 @@ func init() {
 	helper.Register(me)
 	db.RegisterC(me.Name)
 	db.AtConnected(updateUserMetadata)
-	web.AtMiddleWave(setSession())
-	web.AtMiddleWave(auth)
 	web.AtSetHandle(signinGet)
 	web.AtSetHandle(signinPost)
 	web.AtSetHandle(signupGet)
@@ -112,50 +110,56 @@ func signinPost() (name string, paramsStructPtr interface{}, method web.Method, 
 	type input struct {
 		Account  string `json:"account" form:"account" name:"账户"`
 		Password string `json:"password" form:"password" name:"密码"`
+		Qy       string `json:"qy" form:"qy" name:"测试"`
 	}
-	return "登入执行", new(input), web.POST, "/signin",
-		func(c *gin.Context) {
+	return "登入执行", new(input), web.POST, "/signin", func(c *gin.Context) {
 
-			account := c.PostForm("account")
-			password := c.PostForm("password")
-			result := gin.H{
-				"account": account, "password": password, "err": "",
-			}
-
-			defer c.HTML(http.StatusOK, "user/login", result)
-
-			r := db.C(me.Name).FindOne(context.Background(), bson.D{{Key: "account", Value: account}})
-
-			if r.Err() != nil {
-				if r.Err() == mongo.ErrNoDocuments {
-					result["err"] = "no this user"
-				} else {
-					result["err"] = r.Err().Error()
-				}
-				return
-			}
-
-			user := map[string]interface{}{}
-			err := r.Decode(&user)
-			if err != nil {
-				result["err"] = err.Error()
-				return
-			}
-
-			err = bcrypt.CompareHashAndPassword([]byte(user["password"].(string)), []byte(password))
-			if err != nil {
-				result["err"] = err.Error()
-				return
-			}
-
-			session := sessions.Default(c)
-			defer session.Save()
-			session.Set("account", account)
-
-			for _, h := range set_session_hooks {
-				session.Set(h(user))
-			}
+		result := gin.H{
+			"err": "",
 		}
+		defer c.HTML(http.StatusOK, "user/login", result)
+
+		input := input{}
+		err := c.ShouldBind(&input)
+		if err != nil {
+			result["err"] = err.Error()
+			return
+		}
+
+		fmt.Println("输入参数", input)
+
+		r := db.C(me.Name).FindOne(context.Background(), bson.D{{Key: "account", Value: input.Account}})
+
+		if r.Err() != nil {
+			if r.Err() == mongo.ErrNoDocuments {
+				result["err"] = "no this user"
+			} else {
+				result["err"] = r.Err().Error()
+			}
+			return
+		}
+
+		user := map[string]interface{}{}
+		err = r.Decode(&user)
+		if err != nil {
+			result["err"] = err.Error()
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(user["password"].(string)), []byte(input.Password))
+		if err != nil {
+			result["err"] = err.Error()
+			return
+		}
+
+		session := sessions.Default(c)
+		defer session.Save()
+		session.Set("user", user)
+
+		for _, h := range set_session_hooks {
+			session.Set(h(user))
+		}
+	}
 }
 
 //添加用户
@@ -175,22 +179,25 @@ func signupPost() (name string, paramsStructPtr interface{}, method web.Method, 
 	}
 
 	return "注册执行", new(input), web.POST, "/signup", func(c *gin.Context) {
-		account := c.PostForm("account")
-		password := c.PostForm("password")
-
 		result := gin.H{
 			"err": "",
 		}
-
 		defer c.HTML(http.StatusOK, "user/login", result)
 
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		input := input{}
+		err := c.ShouldBind(&input)
 		if err != nil {
 			result["err"] = err.Error()
 			return
 		}
 
-		id, err := metadata.InsertOneFromMetadata(me.Name, bson.M{"account": account, "password": string(hashPassword)})
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+		if err != nil {
+			result["err"] = err.Error()
+			return
+		}
+
+		id, err := metadata.InsertOneFromMetadata(me.Name, bson.M{"account": input.Account, "password": string(hashPassword)})
 
 		if err != nil {
 			result["err"] = err.Error()
@@ -208,17 +215,6 @@ func signout() (string, interface{}, web.Method, string, gin.HandlerFunc) {
 		session.Clear()
 		session.Save()
 	}
-}
-
-func setSession() func(c *gin.Context) {
-
-	store := memstore.NewStore([]byte(sessionKey))
-	store.Options(sessions.Options{
-		MaxAge: 0, // seems this works
-		Path:   "/",
-	})
-
-	return sessions.Sessions("auth", store)
 }
 
 //https://github.com/open-policy-agent/opa

@@ -3,7 +3,7 @@ package user
 default allow = false
 
 allow {
-	input.age > 18
-	input.method == "post"
-	input.path == "doc"
+	input.params.age > 18
+	input.params.method == "post"
+	input.params.path == "doc"
 }
