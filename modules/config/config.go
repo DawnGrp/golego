@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	default_Config_Path = "./config.json"
+	default_Config_Path = "./asset/config.json"
 )
 
 var me = helper.ModuleInfo{

@@ -38,9 +38,16 @@ func auth(c *gin.Context) {
 	//先检查是否登入
 	session := sessions.Default(c)
 
-	user := session.Get("user")
-	if user != nil {
-		c.HTML(http.StatusOK, "user/signup", gin.H{})
+	user, ok := session.Get("user").(map[string]interface{})
+	if user == nil || !ok {
+
+		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "unsignin"})
+		} else {
+			c.Redirect(302, "/signin")
+		}
+
+		c.Abort()
 		return
 	}
 
@@ -57,19 +64,24 @@ func auth(c *gin.Context) {
 		"path":   strings.Trim(c.Request.URL.Path, "/"),
 	}) //OPA 权限验证
 
-	fmt.Println(" c.Request.URL.Path", c.Request.URL.Path)
+	fmt.Println("c.Request.URL.Path", c.Request.URL.Path)
 
 	c.Next()
 }
 
 var opaQuery rego.PreparedEvalQuery
 
+const (
+	auth_rego_path = "./asset/auth.rego"
+	auth_package   = "data.auth"
+)
+
 func OPAInit() {
 
 	// Construct a Rego object that can be prepared or evaluated.
 	r := rego.New(
-		rego.Query("data.user"),
-		rego.Load([]string{"/Users/zeta/workspace/golego/modules/user/example.rego"}, nil))
+		rego.Query(auth_package),
+		rego.Load([]string{auth_rego_path}, nil))
 	// Create a prepared query that can be evaluated.
 	var err error
 	opaQuery, err = r.PrepareForEval(context.Background())
@@ -89,4 +101,5 @@ func OPAQuery(input interface{}) {
 	rsJson, _ := json.Marshal(rs)
 
 	fmt.Println("rs", string(rsJson))
+
 }

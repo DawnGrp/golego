@@ -16,22 +16,20 @@ func TestOpa(t *testing.T) {
 
 	// Construct a Rego object that can be prepared or evaluated.
 	r := rego.New(
-		rego.Query("data.user"),
-		rego.Load([]string{"/Users/zeta/workspace/golego/modules/user/example.rego"}, nil))
+		rego.Query("data.user"), //data is rego root name, user is the package name of rego file
+		rego.Load([]string{
+			"/Users/zeta/workspace/golego/modules/user/opa_test.rego",
+			"/Users/zeta/workspace/golego/modules/user/opa_test.json",
+		},
+			nil))
 	// Create a prepared query that can be evaluated.
 	query, err := r.PrepareForEval(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Load the input document from stdin.
-	var input interface{}
-
-	input = map[string]interface{}{
-		"user":   "bob",
-		"age":    19,
-		"method": "post",
-		"path":   "doc",
+	input := map[string]interface{}{
+		"age": 20,
 	}
 
 	// Execute the prepared query.
