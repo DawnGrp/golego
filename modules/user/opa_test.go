@@ -44,3 +44,7 @@ func TestOpa(t *testing.T) {
 	fmt.Println("rs", string(rsJson))
 
 }
+
+func TestGenRego(t *testing.T) {
+
+}
