@@ -7,6 +7,10 @@ allow {
 	data.name = "zeta"
 }
 
+hidFiled = x {
+	x = [1, 2, 3]
+}
+
 # input.params.age > 18
 # input.params.method == "post"
 # input.params.path == "doc"

@@ -9,9 +9,9 @@ import (
 	_ "golego/modules/document"
 	"golego/modules/helper"
 
+	_ "golego/modules/auth"
 	_ "golego/modules/metadata"
 	_ "golego/modules/theme"
-	_ "golego/modules/user"
 	_ "golego/modules/webserver"
 )
 

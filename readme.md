@@ -1,4 +1,4 @@
-# GoHook 基于Hook的系统
+# Golego 基于Hook的Web系统
 
 ## 需要解决的问题
 
@@ -12,9 +12,4 @@
 
 ## 权限设计方法
 
-ACL 模式
-sub, obj, act
-
-sub = 当前用户登录信息
-obj = 数据
-act = 路由
+ABAC 基于属性的访问控制
